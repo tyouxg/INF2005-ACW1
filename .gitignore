@@ -16,3 +16,5 @@ keys/private_key.pem
 
 # Optional: generated test outputs during dev
 tests/evidence/*.tmp
+/documents
+.pytest_cache/
