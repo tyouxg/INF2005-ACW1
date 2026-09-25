@@ -19,12 +19,13 @@ def _load(path: Path) -> set[str]:
 
 # Checks whether this nonce has alr been recorded, meaning this exact
 # payload has been verified before and this file may be a replay.
-def seen_before(nonce: str, path: Path = DEFAULT_STORE) -> bool:
-    return nonce in _load(path)
+def seen_before(nonce: str, path: Path | None = None) -> bool:
+    return nonce in _load(path or DEFAULT_STORE)
 
 # Add this nonce to the store so future checks will catch it if reused.
 # Called only after a payload passes every other check (signature, hash).
-def record(nonce: str, path: Path = DEFAULT_STORE) -> None:
+def record(nonce: str, path: Path | None = None) -> None:
+    path = path or DEFAULT_STORE
     seen = _load(path)
     seen.add(nonce)
     # Makes sure the keys/ folder exists first, incase it is a fresh checkout

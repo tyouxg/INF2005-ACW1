@@ -10,7 +10,7 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
-from . import crypto, lsb
+from . import crypto, lsb, replay
 from .media import Cover
 from .payload import (HEADER_LEN, build_payload, decode_payload, encode_payload,
                       pack_header, unpack_header)
@@ -23,6 +23,7 @@ SIGNATURE_INVALID = "Signature Invalid"
 PAYLOAD_MISSING = "Payload Missing"
 WRONG_START = "Wrong Start Location"
 CANNOT_VERIFY = "Cannot Verify"
+REPLAY_DETECTED = "Replay Detected"
 
 
 class CapacityError(Exception):
@@ -171,6 +172,14 @@ def _verify(cover, passphrase, pub, start_override):
         return VerifyResult(TAMPERED, (
             "Signature is valid, but the media hash doesn't match. The file was "
             "modified after it was protected."), payload, text, details)
+
+    # Replay check from M3, see core/replay.py
+    if replay.seen_before(payload["nonce"]):
+        return VerifyResult(REPLAY_DETECTED, (
+            "Signature and hash are valid, but this exact payload has been verified "
+            "before. This file may be a replay of an earlier legitimate message."),
+            payload, text, details)
+    replay.record(payload["nonce"])
 
     return VerifyResult(AUTHENTIC, "Signature valid and media hash matches.",
                         payload, text, details)

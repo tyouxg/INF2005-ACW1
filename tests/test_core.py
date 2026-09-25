@@ -18,6 +18,12 @@ def keys():
     priv = crypto.generate_keypair()
     return priv, priv.public_key()
 
+# Runs automatically for every test,
+# keeps replay checks off the real seen_nonces.json,
+# so test runs will not polute the real seen_nonces.json with fake "verified" entries.
+@pytest.fixture(autouse=True)
+def isolated_replay_store(tmp_path, monkeypatch):
+    monkeypatch.setattr(replay, "DEFAULT_STORE", tmp_path / "seen_nonces.json")
 
 @pytest.fixture
 def png(tmp_path):
