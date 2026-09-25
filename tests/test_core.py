@@ -6,6 +6,7 @@ from PIL import Image
 
 from stego import messages
 from stego.core import crypto, lsb, media
+from stego.core import replay
 from stego.core.protect import (AUTHENTIC, SIGNATURE_INVALID, TAMPERED, WRONG_START,
                                 CapacityError, protect, verify)
 
@@ -136,3 +137,19 @@ def test_jpeg_output_refused(png, keys):
     cover = media.load_cover(png)
     with pytest.raises(media.UnsupportedMedia):
         media.save_cover(cover, "out.jpg")
+
+def test_replay_nonce_unseen_by_default(tmp_path):
+    store = tmp_path / "seen_nonces.json"
+    assert replay.seen_before("abc123", path=store) is False
+
+
+def test_replay_nonce_seen_after_record(tmp_path):
+    store = tmp_path / "seen_nonces.json"
+    replay.record("abc123", path=store)
+    assert replay.seen_before("abc123", path=store) is True
+
+
+def test_replay_different_nonce_not_flagged(tmp_path):
+    store = tmp_path / "seen_nonces.json"
+    replay.record("abc123", path=store)
+    assert replay.seen_before("xyz789", path=store) is False
