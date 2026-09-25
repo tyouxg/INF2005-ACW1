@@ -8,6 +8,7 @@ venv/
 # Private keys — never commit these
 keys/private_key.pem
 *.key
+keys/seen_nonces.json
 
 # OS/editor junk
 .DS_Store
