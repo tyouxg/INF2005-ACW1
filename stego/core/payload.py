@@ -10,7 +10,7 @@ MAGIC = b"SG"
 VERSION = 1
 HEADER_FMT = ">2sBBI"          # magic, version, k, body length
 HEADER_LEN = struct.calcsize(HEADER_FMT)
-TEAM_META = {"team": "Px-x", "tool": "INF2005-ACW1 stego"}
+TEAM_META = {"team": "P1-3", "tool": "INF2005-ACW1 stego"}
 
 
 def build_payload(kind: str, filename: str, media_hash: str, k: int,

@@ -15,6 +15,6 @@ LONG = ("This undergraduate project requires student teams to design, implement 
 
 # The team should swap this for their own custom payload. It's meant to be sent
 # with encryption on, so it stays confidential as well as integrity-protected.
-CUSTOM = "Release approved: batch 07, verified by media team. Do not distribute before 01 Oct."
+CUSTOM = "Donor match confirmed for patient P-4471, transplant scheduled 5 Oct 06:00. Details restricted to surgical team only."
 
 PRESETS = {"Short (learning outcome)": SHORT, "Long (project overview)": LONG, "Custom": CUSTOM}

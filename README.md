@@ -21,9 +21,27 @@ python -m stego.cli --help      # command line version of the same thing
 python -m pytest                # tests
 ```
 
-First time: open the **Keys** tab (or run `python -m stego.cli keygen`) to create
-`keys/private_key.pem` and `keys/public_key.pem`. The private key is gitignored and only the public
-key is submitted. The key pair is generated just for this assignment demo.
+## Keys
+
+Two different secrets are used here, and they are not the same thing:
+
+- **Signing key pair (Ed25519):** one private key, one public key. The sender signs the payload with
+  the private key; the receiver checks the signature with the public key. Generate a pair in the
+  **Keys** tab, or run `python -m stego.cli keygen`. This creates `keys/private_key.pem` and
+  `keys/public_key.pem`.
+- **Stego key:** a shared passphrase typed into both the Sender and Receiver tabs. It is not a file
+  and not the same as the signing key pair above. It derives the payload's start location and the
+  optional AES-GCM encryption key.
+
+What to share with the receiver: your **public key** (`public_key.pem`) and the **stego key**
+(passphrase), agreed on separately from the stego file itself, e.g. in person or over a different
+channel.
+
+What never leaves your machine: the **private key** (`private_key.pem`). It is listed in
+`.gitignore` and must not be committed or submitted, only `public_key.pem` goes in the `keys/`
+folder. Anyone holding your private key could sign payloads that falsely appear to come from you.
+
+The key pair in this project is generated solely for the assignment demo, not for real-world use.
 
 ## Workflow
 
