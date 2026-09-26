@@ -18,6 +18,7 @@ pip install -r requirements.txt
 ```
 python -m stego.gui             # GUI: Sender, Receiver and Keys tabs
 python -m stego.cli --help      # command line version of the same thing
+python -m stego.cli capacity cover.png -k 1 --msg-file long.txt   # exact size check, no embedding
 python -m pytest                # tests
 ```
 

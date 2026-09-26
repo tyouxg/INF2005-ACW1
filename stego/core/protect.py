@@ -67,6 +67,22 @@ def capacity_bytes(cover: Cover, k: int) -> int:
     return max(0, (len(cover.carrier) - HEADER_UNITS) * k // 8)
 
 
+def body_size(cover: Cover, filename: str, text: str, k: int,
+              encrypt_message: bool = False) -> int:
+    """Exact body length protect() will produce, without needing the real keys.
+
+    Apart from the text and filename, every payload field has a fixed width (hex
+    digests, uuid, timestamp, AES salt/nonce), so a build with dummy values
+    comes out the same size.
+    """
+    if encrypt_message:
+        message = {"enc": True, **crypto.encrypt(bytes(32), text.encode("utf-8"))}
+    else:
+        message = {"enc": False, "text": text}
+    payload = build_payload(cover.kind, filename, "0" * 64, k, message, "0" * 16)
+    return len(encode_payload(payload)) + crypto.SIG_LEN
+
+
 def protect(cover: Cover, filename: str, text: str, k: int, passphrase: str,
             priv, encrypt_message: bool = False):
     if not 1 <= k <= 8:
