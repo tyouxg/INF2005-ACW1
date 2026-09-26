@@ -11,6 +11,8 @@ from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
 from PySide6.QtWidgets import (QApplication, QComboBox, QFileDialog, QGroupBox, QHBoxLayout,
                                QLabel, QLineEdit, QPushButton, QSizePolicy, QVBoxLayout,
                                QWidget)
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
+from matplotlib.figure import Figure
 
 from ..core import media, visual
 
@@ -149,9 +151,15 @@ class MediaView(QGroupBox):
 
 
 class DiffView(QGroupBox):
-    """Shows where the payload went: amplified |stego - cover| or an LSB plane."""
+    """Shows where the payload went: amplified |stego - cover|, LSB planes, or Histograms."""
 
-    MODES = ["Amplified |stego − cover|", "LSB plane of stego", "LSB plane of cover"]
+    MODES = [
+        "Amplified |stego − cover|", 
+        "LSB plane of stego", 
+        "LSB plane of cover",
+        "Histogram of cover",
+        "Histogram of stego"
+    ]
 
     def __init__(self, title: str = "Difference"):
         super().__init__(title)
@@ -162,7 +170,12 @@ class DiffView(QGroupBox):
         self.save_btn = QPushButton("Save full size…")
         self.save_btn.setToolTip("Save this view at 1:1 scale, e.g. for the evidence folder")
         self.save_btn.clicked.connect(self._save)
+        
         self.image = ImageLabel("Protect an image to see the difference")
+        # Initialize the matplotlib widget and hide it by default
+        self.histogram = HistogramView()
+        self.histogram.setVisible(False)
+        
         self.info = QLabel("")
         self.info.setWordWrap(True)
         self._arr = None
@@ -172,7 +185,10 @@ class DiffView(QGroupBox):
         top.addWidget(self.save_btn)
         lay = QVBoxLayout(self)
         lay.addLayout(top)
+        
+        # Add both to the layout; we will hide/show them dynamically
         lay.addWidget(self.image, 1)
+        lay.addWidget(self.histogram, 1)
         lay.addWidget(self.info)
 
     def set_pair(self, cover, stego, k: int = 0):
@@ -187,29 +203,59 @@ class DiffView(QGroupBox):
         self.info.setText("")
         self._arr = None
         self.save_btn.setEnabled(False)
+        
         if c is None or s is None:
+            self.image.setVisible(True)
+            self.histogram.setVisible(False)
             self.image.set_image(None, "Protect an image to see the difference")
             return
+            
         if c.kind != "image":
+            self.image.setVisible(True)
+            self.histogram.setVisible(False)
             self.image.set_image(None, "Difference view is for images only")
             return
+            
         mode = self.mode.currentIndex()
-        if mode == 0:
-            arr = visual.difference(c, s)
-            n = visual.changed_pixels(c, s)
-            total = c.params["width"] * c.params["height"]
-            self.info.setText(f"{n:,} of {total:,} pixels changed ({100 * n / total:.2f}%). "
-                              "Black = unchanged.")
-        else:
-            arr = visual.lsb_plane(s if mode == 1 else c)
-            self.info.setText("Bit 0 of every RGB byte. The payload looks like random noise. "
-                              "Save full size to see it properly.")
-        self._arr = arr
-        self.save_btn.setEnabled(True)
-        self.image.set_array(arr, keep_bright=(mode == 0))
+        
+        # Modes 0, 1, 2 are standard image views
+        if mode in [0, 1, 2]:
+            self.histogram.setVisible(False)
+            self.image.setVisible(True)
+            if mode == 0:
+                arr = visual.difference(c, s)
+                n = visual.changed_pixels(c, s)
+                total = c.params["width"] * c.params["height"]
+                self.info.setText(f"{n:,} of {total:,} pixels changed ({100 * n / total:.2f}%). "
+                                  "Black = unchanged.")
+            else:
+                arr = visual.lsb_plane(s if mode == 1 else c)
+                self.info.setText("Bit 0 of every RGB byte. The payload looks like random noise. "
+                                  "Save full size to see it properly.")
+            self._arr = arr
+            self.save_btn.setEnabled(True)
+            self.image.set_array(arr, keep_bright=(mode == 0))
+            
+        # Modes 3 and 4 are the new histogram views
+        elif mode == 3:
+            self.image.setVisible(False)
+            self.histogram.setVisible(True)
+            self.info.setText("RGB intensity distribution of the original cover.")
+            # Use the cover to set its own y-axis limits uniformly across all 3 colors
+            c_rgb = visual.image_rgb(c)
+            self.histogram.plot_image(c_rgb, ref_arr=c_rgb)
+            
+        elif mode == 4:
+            self.image.setVisible(False)
+            self.histogram.setVisible(True)
+            self.info.setText("RGB intensity distribution of the stego image.")
+            # Plot the stego array, but force it to use the cover's y-axis limits
+            self.histogram.plot_image(visual.image_rgb(s), ref_arr=visual.image_rgb(c))
 
     def _save(self):
-        name = ["diff", "lsb_stego", "lsb_cover"][self.mode.currentIndex()]
+        # We disable the save button for histograms to keep it simple,
+        # so this logic remains untouched for modes 0, 1, 2.
+        name = ["diff", "lsb_stego", "lsb_cover", "", ""][self.mode.currentIndex()]
         start = str(Path(last_dir() or ".") / f"{name}_k{self.stego_k}.png")
         path, _ = QFileDialog.getSaveFileName(self, "Save view", start, "PNG image (*.png)")
         if path:
@@ -244,3 +290,44 @@ class FilePicker(QWidget):
 
     def is_file(self) -> bool:
         return bool(self.text()) and Path(self.text()).is_file()
+
+class HistogramView(QWidget):
+    """A PySide6 widget that displays RGB pixel intensity histograms."""
+    def __init__(self, title: str = "Statistical Steganalysis"):
+        super().__init__()
+        # Set up the Matplotlib figure and canvas to embed in PySide6
+        self.figure = Figure(figsize=(8, 3))
+        self.canvas = FigureCanvasQTAgg(self.figure)
+        
+        lay = QVBoxLayout(self)
+        lay.addWidget(self.canvas)
+        self.clear()
+
+    def plot_image(self, arr: np.ndarray, ref_arr: np.ndarray = None):
+        """Plots histograms. If ref_arr is provided, its maximum bin height is used to lock the y-axis."""
+        self.figure.clear()
+        colors = ('red', 'green', 'blue')
+        
+        # Find the highest peak in the reference array to lock the y-axis
+        ymax = None
+        if ref_arr is not None:
+            max_counts = [np.histogram(ref_arr[:, :, i], bins=256, range=(0, 256))[0].max() for i in range(3)]
+            ymax = max(max_counts) * 1.05  # Add 5% padding to the top so peaks don't touch the ceiling
+            
+        for i, color in enumerate(colors):
+            ax = self.figure.add_subplot(1, 3, i + 1)
+            channel_data = arr[:, :, i].ravel()
+            ax.hist(channel_data, bins=256, range=(0, 256), color=color)
+            ax.set_title(f"{color.capitalize()} Channel")
+            ax.set_xlim([0, 255])
+            
+            # Lock the y-axis if a reference limit was calculated
+            if ymax is not None:
+                ax.set_ylim([0, ymax])
+                
+        self.figure.tight_layout()
+        self.canvas.draw()
+
+    def clear(self):
+        self.figure.clear()
+        self.canvas.draw()
