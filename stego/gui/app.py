@@ -50,10 +50,17 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("INF2005 Stego Verifier")
         self.resize(1100, 850)
+        self.sender = SenderTab(KEYS_DIR)
+        self.receiver = ReceiverTab(KEYS_DIR)
+        # saves re-picking the file when A and B are demoed on the same laptop
+        self.sender.saved.connect(self.receiver.file_pick.edit.setText)
         tabs = QTabWidget()
-        tabs.addTab(SenderTab(KEYS_DIR), "Sender (A)")
-        tabs.addTab(ReceiverTab(KEYS_DIR), "Receiver (B)")
+        tabs.addTab(self.sender, "Sender (A)")
+        tabs.addTab(self.receiver, "Receiver (B)")
         tabs.addTab(KeysTab(), "Keys")
+        # a key pair made in the Keys tab should enable the buttons straight away
+        tabs.currentChanged.connect(self.sender.refresh)
+        tabs.currentChanged.connect(self.receiver.refresh)
         self.setCentralWidget(tabs)
 
 
