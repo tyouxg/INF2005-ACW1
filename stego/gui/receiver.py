@@ -17,6 +17,7 @@ COLOURS = {
     protect.PAYLOAD_MISSING: "#a15c00",
     protect.WRONG_START: "#a15c00",
     protect.CANNOT_VERIFY: "#555555",
+    protect.REPLAY_DETECTED: "#a15c00",
 }
 
 
