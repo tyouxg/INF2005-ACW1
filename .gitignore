@@ -18,3 +18,4 @@ keys/private_key.pem
 tests/evidence/*.tmp
 /documents
 .pytest_cache/
+.pytest-tmp/

@@ -37,6 +37,19 @@ key is submitted. The key pair is generated just for this assignment demo.
 Verdicts: **Authentic**, **Tampered**, **Signature Invalid**, **Payload Missing**,
 **Wrong Start Location**, **Cannot Verify**.
 
+## M2 audio demo assets
+
+Generate the reproducible M2 WAV cover, long-message stego file and amplified
+tamper case with:
+
+```
+.venv\Scripts\python tools\generate_audio_samples.py
+```
+
+The files are written to `samples/audio/`. Use its `README.md` for the demo
+stego key, public key, verification commands and the precise Audacity workflow.
+The GUI WAV previews include a waveform, allowing a before/after comparison.
+
 ## Design summary
 
 | Part | How |
