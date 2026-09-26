@@ -7,7 +7,8 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 
-IMAGE_EXTS = {".png", ".bmp"}
+IMAGE_EXTS = {".png", ".bmp"}           # lossless, safe for stego output
+JPEG_EXTS = {".jpg", ".jpeg"}           # accepted as a cover only, never as output
 AUDIO_EXTS = {".wav"}
 
 
@@ -44,11 +45,11 @@ class Cover:
 
 def media_kind(path) -> str:
     ext = Path(path).suffix.lower()
-    if ext in IMAGE_EXTS:
+    if ext in IMAGE_EXTS or ext in JPEG_EXTS:
         return "image"
     if ext in AUDIO_EXTS:
         return "audio"
-    raise UnsupportedMedia(f"Unsupported file type '{ext}'. Use PNG/BMP for images or WAV for audio.")
+    raise UnsupportedMedia(f"Unsupported file type '{ext}'. Use PNG/BMP/JPEG for images or WAV for audio.")
 
 
 def load_cover(path) -> Cover:
@@ -63,6 +64,9 @@ def save_cover(cover: Cover, path) -> None:
 
 
 def load_image(path) -> Cover:
+    # JPEG covers are decoded to plain pixels here, so embedding works the same.
+    # The stego result must then be saved as PNG/BMP: re-encoding as JPEG would
+    # requantise the pixels and wipe the LSBs.
     # Alpha is dropped on purpose: fully transparent pixels can get their RGB
     # zeroed by some editors, which would wipe the payload.
     img = Image.open(path).convert("RGB")

@@ -5,7 +5,7 @@ import pytest
 from PIL import Image
 
 from stego import messages
-from stego.core import crypto, lsb, media
+from stego.core import crypto, imagetools, lsb, media
 from stego.core.protect import (AUTHENTIC, SIGNATURE_INVALID, TAMPERED, WRONG_START,
                                 CapacityError, protect, verify)
 
@@ -136,3 +136,41 @@ def test_jpeg_output_refused(png, keys):
     cover = media.load_cover(png)
     with pytest.raises(media.UnsupportedMedia):
         media.save_cover(cover, "out.jpg")
+
+
+def test_psnr_identical_is_infinite(png):
+    cover = media.load_cover(png)
+    assert imagetools.psnr(cover, cover.copy()) == float("inf")
+    assert imagetools.changed_pixels(cover, cover.copy()) == 0
+
+
+def test_psnr_drops_as_k_rises(png, tmp_path, keys):
+    cover = media.load_cover(png)
+    scores = [imagetools.psnr(cover, roundtrip(png, tmp_path, keys, k, messages.LONG)[0])
+              for k in (1, 4, 8)]
+    assert scores[0] > scores[1] > scores[2]
+
+
+def test_diff_map_marks_only_changed_pixels(png, tmp_path, keys):
+    cover = media.load_cover(png)
+    stego, _ = roundtrip(png, tmp_path, keys, 8, messages.SHORT)
+    arr = np.array(imagetools.diff_map(cover, stego))
+    red = np.all(arr == (255, 0, 0), axis=2).sum()
+    assert red == imagetools.changed_pixels(cover, stego) > 0
+
+
+def test_jpeg_cover_saved_as_png_is_authentic(png, tmp_path, keys):
+    jpg = tmp_path / "cover.jpg"
+    Image.open(png).save(jpg, quality=90)
+    cover = media.load_cover(jpg)
+    stego, _, _ = protect(cover, jpg.name, messages.SHORT, 2, KEY, keys[0])
+    out = tmp_path / "cover_stego.png"
+    media.save_cover(stego, out)
+    assert verify(media.load_cover(out), KEY, keys[1]).verdict == AUTHENTIC
+
+
+def test_jpeg_recompression_destroys_payload(png, tmp_path, keys):
+    stego, _ = roundtrip(png, tmp_path, keys, 2, messages.SHORT)
+    recompressed = tmp_path / "recompressed.jpg"
+    Image.fromarray(stego.data.reshape(120, 160, 3)).save(recompressed, quality=95)
+    assert verify(media.load_cover(recompressed), KEY, keys[1]).verdict != AUTHENTIC

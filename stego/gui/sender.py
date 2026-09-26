@@ -11,7 +11,8 @@ from .. import messages
 from ..core import crypto, media, protect
 from .widgets import FilePicker, MediaView
 
-MEDIA_FILTER = "Cover files (*.png *.bmp *.wav);;Images (*.png *.bmp);;Audio (*.wav)"
+MEDIA_FILTER = ("Cover files (*.png *.bmp *.jpg *.jpeg *.wav);;"
+                "Images (*.png *.bmp *.jpg *.jpeg);;Audio (*.wav)")
 
 
 class SenderTab(QWidget):
@@ -132,7 +133,9 @@ class SenderTab(QWidget):
             QMessageBox.warning(self, "Can't protect", str(e))
             return
 
-        suggested = cover_path.with_name(f"{cover_path.stem}_stego{cover_path.suffix}")
+        # JPEG covers get a PNG stego file; JPEG output would destroy the LSBs
+        suffix = ".png" if cover_path.suffix.lower() in media.JPEG_EXTS else cover_path.suffix
+        suggested = cover_path.with_name(f"{cover_path.stem}_stego{suffix}")
         ext = "*.wav" if self.cover.kind == "audio" else "*.png *.bmp"
         out, _ = QFileDialog.getSaveFileName(self, "Save stego file", str(suggested), f"({ext})")
         if not out:
