@@ -27,9 +27,9 @@ python -m pytest                # tests
 Two different secrets are used here, and they are not the same thing:
 
 - **Signing key pair (Ed25519):** one private key, one public key. The sender signs the payload with
-  the private key; the receiver checks the signature with the public key. Generate a pair in the
-  **Keys** tab, or run `python -m stego.cli keygen`. This creates `keys/private_key.pem` and
-  `keys/public_key.pem`.
+  the private key; the receiver checks the signature with the public key. The team's demo pair is
+  already in `keys/`. **Don't regenerate it** (Keys tab or `stego.cli keygen`): a new pair won't
+  verify files signed with the team key.
 - **Stego key:** a shared passphrase typed into both the Sender and Receiver tabs. It is not a file
   and not the same as the signing key pair above. It derives the payload's start location and the
   optional AES-GCM encryption key.
@@ -38,11 +38,11 @@ What to share with the receiver: your **public key** (`public_key.pem`) and the 
 (passphrase), agreed on separately from the stego file itself, e.g. in person or over a different
 channel.
 
-What never leaves your machine: the **private key** (`private_key.pem`). It is listed in
-`.gitignore` and must not be committed or submitted, only `public_key.pem` goes in the `keys/`
-folder. Anyone holding your private key could sign payloads that falsely appear to come from you.
-
-The key pair in this project is generated solely for the assignment demo, not for real-world use.
+In a real deployment the **private key** (`private_key.pem`) would never leave the signer's machine:
+anyone holding it can sign payloads that falsely appear to come from you. Here it is committed on
+purpose, because the key pair was generated solely for this assignment demo (the spec allows
+submitting demo-only keys) and every team member needs the same key to sign and verify. Treat it as
+public and never reuse it for anything real.
 
 ## Workflow
 
