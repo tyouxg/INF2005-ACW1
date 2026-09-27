@@ -5,6 +5,7 @@ from PySide6.QtWidgets import (QApplication, QLabel, QMainWindow, QMessageBox, Q
                                QTabWidget, QVBoxLayout, QWidget)
 
 from ..core import crypto
+from .attack_lab import AttackLabTab
 from .receiver import ReceiverTab
 from .sender import SenderTab
 
@@ -52,11 +53,14 @@ class MainWindow(QMainWindow):
         self.resize(1100, 850)
         self.sender = SenderTab(KEYS_DIR)
         self.receiver = ReceiverTab(KEYS_DIR)
+        self.attack_lab = AttackLabTab(KEYS_DIR)
         # saves re-picking the file when A and B are demoed on the same laptop
         self.sender.saved.connect(self.receiver.file_pick.edit.setText)
+        self.sender.saved.connect(self.attack_lab.file_pick.edit.setText)
         tabs = QTabWidget()
         tabs.addTab(self.sender, "Sender (A)")
         tabs.addTab(self.receiver, "Receiver (B)")
+        tabs.addTab(self.attack_lab, "Attack Lab")
         tabs.addTab(KeysTab(), "Keys")
         # a key pair made in the Keys tab should enable the buttons straight away
         tabs.currentChanged.connect(self.sender.refresh)
