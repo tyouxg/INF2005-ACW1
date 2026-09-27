@@ -2,7 +2,7 @@
 
 Layout inside the carrier, starting at the key-derived offset and wrapping
 around the end if needed:
-
+ 
     [ header: 8 bytes, 1 LSB per unit, XOR-masked ][ body: payload JSON + signature, k LSBs per unit ]
 """
 
