@@ -1,0 +1,12 @@
+# N5
+$ python -m stego.cli verify tests/evidence/files/p2_audio_stego.wav --key wrong-guess --pub keys/public_key.pem
+Verdict: Wrong Start Location
+No valid header at offset 206616. Either the stego key is wrong (so the derived start location is wrong) or this file has no payload.
+{
+  "details": {
+    "start": 206616,
+    "carrier_units": 352800
+  },
+  "payload": null
+}
+(exit code 1)

@@ -16,11 +16,15 @@ pip install -r requirements.txt
 ## Running
 
 ```
-python -m stego.gui             # GUI: Sender, Receiver and Keys tabs
+python -m stego.gui             # GUI: Sender, Receiver, Attack Lab and Keys tabs
 python -m stego.cli --help      # command line version of the same thing
 python -m stego.cli capacity cover.png -k 1 --msg-file long.txt   # exact size check, no embedding
 python -m pytest                # tests
+python tools/generate_evidence.py   # rebuild tests/evidence/ (logs, screenshots, results.json)
 ```
+
+The test evidence (every demo case, the Attack Lab runs and the LSB 1-8 table) is summarised in
+`tests/evidence/INF2005_ACW1_P6-4_Test_Evidence.docx`.
 
 ## Keys
 
@@ -52,6 +56,10 @@ public and never reuse it for anything real.
 2. Send the stego file to B by any channel, e.g. as an email attachment (done by hand, not by this tool).
 3. **Receiver (B):** load the stego file, enter the same stego key and the sender's public key, then
    *Extract & verify*.
+4. **Attack Lab:** load a genuine stego file with its stego key and public key, then *Run all
+   attacks*. Nine attacks (editing the media, flipping a payload bit, wrong key, cropping, pasting the
+   payload into another file, JPEG, replay…) each run on a copy, and the table shows whether
+   `verify()` caught each one with the expected verdict.
 
 Verdicts: **Authentic**, **Tampered**, **Signature Invalid**, **Payload Missing**,
 **Wrong Start Location**, **Cannot Verify**, and our own **Replay Detected**.

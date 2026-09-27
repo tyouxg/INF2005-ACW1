@@ -1,0 +1,22 @@
+# N1 Capacity check: long message into a 24x24 image at 1 LSB
+$ python -m stego.cli capacity tests/evidence/files/image_tiny.png -k 1 --msg-file tests/evidence/files/long_message.txt
+24x24 RGB, 1,728 carrier bytes
+Payload 1,092 bytes, capacity 208 bytes at 1 LSB(s)
+Does NOT fit
+(exit code 1)
+
+$ python -m stego.cli protect tests/evidence/files/image_tiny.png tests/evidence/files/n1_should_not_exist.png -k 1 --key p6-4-demo-key --msg-file tests/evidence/files/long_message.txt --priv keys/private_key.pem
+Capacity check failed: Payload needs 1,092 bytes but this cover only holds 208 bytes at 1 LSB(s). Use more LSBs, a bigger cover, or a shorter message.
+(exit code 1)
+
+$ python -m stego.cli capacity tests/evidence/files/image_tiny.png -k 8 --msg-file tests/evidence/files/long_message.txt
+24x24 RGB, 1,728 carrier bytes
+Payload 1,092 bytes, capacity 1,664 bytes at 8 LSB(s)
+Fits
+(exit code 0)
+
+## GUI pop-up
+Capacity check failed: Payload needs 1,092 bytes but this cover only holds 208 bytes at 1 LSB(s). Use more LSBs, a bigger cover, or a shorter message.
+## Sender tab log (GUI)
+CAPACITY CHECK FAILED
+Payload needs 1,092 bytes but this cover only holds 208 bytes at 1 LSB(s). Use more LSBs, a bigger cover, or a shorter message.

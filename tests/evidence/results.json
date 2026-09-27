@@ -1,0 +1,532 @@
+{
+  "team": "P6-4",
+  "generated": "2026-09-27 20:46",
+  "commit": "ccd16f2",
+  "branch": "m6-attacks",
+  "environment": {
+    "python": "3.12.0",
+    "os": "Windows 11",
+    "packages": {
+      "PySide6": "6.9.3",
+      "numpy": "2.5.3",
+      "PIL": "12.3.0",
+      "cryptography": "50.0.1",
+      "matplotlib": "3.11.2"
+    }
+  },
+  "stego_key": "p6-4-demo-key",
+  "cases": [
+    {
+      "id": "P1",
+      "title": "Image, short message (learning outcome), 2 LSBs",
+      "cover": "tests/evidence/files/image_cover.png",
+      "kind": "image",
+      "requirement": "Positive image case, short payload",
+      "expected": "Authentic",
+      "actual": "Authentic",
+      "passed": true,
+      "log": "tests/evidence/logs/P1.txt",
+      "screenshots": [
+        "tests/evidence/screenshots/P1_sender.png",
+        "tests/evidence/screenshots/P1_receiver.png"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "P2",
+      "title": "Audio, long message (project overview), 2 LSBs",
+      "cover": "tests/evidence/files/audio_cover.wav",
+      "kind": "audio",
+      "requirement": "Positive audio case, long payload",
+      "expected": "Authentic",
+      "actual": "Authentic",
+      "passed": true,
+      "log": "tests/evidence/logs/P2.txt",
+      "screenshots": [
+        "tests/evidence/screenshots/P2_sender.png",
+        "tests/evidence/screenshots/P2_receiver.png"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "P3",
+      "title": "Image, custom payload encrypted with AES-GCM, 3 LSBs",
+      "cover": "tests/evidence/files/image_cover.png",
+      "kind": "image",
+      "requirement": "Custom payload: confidentiality + integrity",
+      "expected": "Authentic",
+      "actual": "Authentic",
+      "passed": true,
+      "log": "tests/evidence/logs/P3.txt",
+      "screenshots": [
+        "tests/evidence/screenshots/P3_sender.png",
+        "tests/evidence/screenshots/P3_receiver.png"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "P4",
+      "title": "Audio, custom encrypted payload, 8 LSBs",
+      "cover": "tests/evidence/files/audio_cover.wav",
+      "kind": "audio",
+      "requirement": "Positive audio case at the LSB extreme",
+      "expected": "Authentic",
+      "actual": "Authentic",
+      "passed": true,
+      "log": "tests/evidence/logs/P4.txt",
+      "screenshots": [
+        "tests/evidence/screenshots/P4_sender.png",
+        "tests/evidence/screenshots/P4_receiver.png"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "N1",
+      "title": "Capacity check: payload larger than cover",
+      "cover": "tests/evidence/files/image_tiny.png",
+      "kind": "image",
+      "requirement": "Capacity check / LSB selection",
+      "expected": "Blocked",
+      "actual": "Blocked",
+      "passed": true,
+      "log": "tests/evidence/logs/N1.txt",
+      "screenshots": [
+        "tests/evidence/screenshots/N1_sender_capacity_fail.png"
+      ],
+      "notes": "At 1 LSB the long message doesn't fit, at 8 LSBs it does."
+    },
+    {
+      "id": "N2",
+      "title": "Image edited after protection (block blacked out)",
+      "cover": "tests/evidence/files/n2_image_tampered.png",
+      "kind": "image",
+      "requirement": "Negative image case",
+      "expected": "Tampered",
+      "actual": "Tampered",
+      "passed": true,
+      "log": "tests/evidence/logs/N2.txt",
+      "screenshots": [
+        "tests/evidence/screenshots/N2_receiver_tampered.png"
+      ],
+      "notes": "The payload rows were left alone, so the signature is valid and the media hash catches it."
+    },
+    {
+      "id": "N3",
+      "title": "Audio edited after protection (0.5 s made 35% louder)",
+      "cover": "tests/evidence/files/n3_audio_tampered.wav",
+      "kind": "audio",
+      "requirement": "Negative audio case",
+      "expected": "Tampered",
+      "actual": "Tampered",
+      "passed": true,
+      "log": "tests/evidence/logs/N3.txt",
+      "screenshots": [
+        "tests/evidence/screenshots/N3_receiver_tampered.png"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "N4",
+      "title": "Forged payload signed with an attacker's key",
+      "cover": "tests/evidence/files/n4_image_forged.png",
+      "kind": "image",
+      "requirement": "Signature verification",
+      "expected": "Signature Invalid",
+      "actual": "Signature Invalid",
+      "passed": true,
+      "log": "tests/evidence/logs/N4.txt",
+      "screenshots": [
+        "tests/evidence/screenshots/N4_receiver_signature_invalid.png"
+      ],
+      "notes": "Attacker key pair generated only for this test, in files/attacker_keys/."
+    },
+    {
+      "id": "N5",
+      "title": "Wrong stego key (start location can't be found)",
+      "cover": "tests/evidence/files/p2_audio_stego.wav",
+      "kind": "audio",
+      "requirement": "Start-location security",
+      "expected": "Wrong Start Location",
+      "actual": "Wrong Start Location",
+      "passed": true,
+      "log": "tests/evidence/logs/N5.txt",
+      "screenshots": [
+        "tests/evidence/screenshots/N5_receiver_wrong_key.png"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "N6",
+      "title": "Replay: the same genuine file presented again",
+      "cover": "tests/evidence/files/p1_image_stego.png",
+      "kind": "image",
+      "requirement": "Replay detection (team addition)",
+      "expected": "Replay Detected",
+      "actual": "Replay Detected",
+      "passed": true,
+      "log": "tests/evidence/logs/N6.txt",
+      "screenshots": [
+        "tests/evidence/screenshots/N6_receiver_replay.png"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "N7",
+      "title": "Limitation: stego image re-saved as JPEG (quality 95)",
+      "cover": "tests/evidence/files/n7_after_jpeg.png",
+      "kind": "image",
+      "requirement": "Limitations",
+      "expected": "Not authentic",
+      "actual": "Not authentic",
+      "passed": true,
+      "log": "tests/evidence/logs/N7.txt",
+      "screenshots": [],
+      "notes": "verify() said Wrong Start Location: the payload doesn't survive lossy compression."
+    }
+  ],
+  "attacks": {
+    "image": [
+      {
+        "name": "Edit outside payload",
+        "what": "Flipped the top bit of 500 bytes that hold no payload",
+        "expected": [
+          "Tampered"
+        ],
+        "got": "Tampered",
+        "passed": true,
+        "reason": "Signature is valid, but the media hash doesn't match. The file was modified after it was protected."
+      },
+      {
+        "name": "Flip one payload bit",
+        "what": "Changed a single bit inside the hidden payload",
+        "expected": [
+          "Signature Invalid"
+        ],
+        "got": "Signature Invalid",
+        "passed": true,
+        "reason": "Signature check failed. The embedded payload was altered, or it was signed by a different key than the public key provided."
+      },
+      {
+        "name": "Break length field",
+        "what": "Flipped the top bit of the header's length field",
+        "expected": [
+          "Payload Missing"
+        ],
+        "got": "Payload Missing",
+        "passed": true,
+        "reason": "Header found but the payload body is missing or truncated."
+      },
+      {
+        "name": "Wrong stego key",
+        "what": "Tried to extract with a guessed passphrase",
+        "expected": [
+          "Wrong Start Location"
+        ],
+        "got": "Wrong Start Location",
+        "passed": true,
+        "reason": "No valid header at offset 512916. Either the stego key is wrong (so the derived start location is wrong) or this file has no payload."
+      },
+      {
+        "name": "Off-by-one start",
+        "what": "Read the payload one byte after the real start",
+        "expected": [
+          "Wrong Start Location"
+        ],
+        "got": "Wrong Start Location",
+        "passed": true,
+        "reason": "No valid header at offset 493247. Either the stego key is wrong (so the derived start location is wrong) or this file has no payload."
+      },
+      {
+        "name": "Crop / trim",
+        "what": "Removed one pixel row, or 100 audio frames",
+        "expected": [
+          "Wrong Start Location"
+        ],
+        "got": "Wrong Start Location",
+        "passed": true,
+        "reason": "No valid header at offset 346990. Either the stego key is wrong (so the derived start location is wrong) or this file has no payload."
+      },
+      {
+        "name": "Substitute payload",
+        "what": "Pasted the genuine payload into a different file",
+        "expected": [
+          "Tampered"
+        ],
+        "got": "Tampered",
+        "passed": true,
+        "reason": "Signature is valid, but the media hash doesn't match. The file was modified after it was protected."
+      },
+      {
+        "name": "Lossy re-encode",
+        "what": "JPEG re-compressed the image, or added LSB noise to the audio",
+        "expected": [
+          "Wrong Start Location",
+          "Signature Invalid",
+          "Payload Missing"
+        ],
+        "got": "Wrong Start Location",
+        "passed": true,
+        "reason": "No valid header at offset 493246. Either the stego key is wrong (so the derived start location is wrong) or this file has no payload."
+      },
+      {
+        "name": "Replay",
+        "what": "Presented the same authentic file a second time",
+        "expected": [
+          "Replay Detected"
+        ],
+        "got": "Replay Detected",
+        "passed": true,
+        "reason": "Signature and hash are valid, but this exact payload has been verified before. This file may be a replay of an earlier legitimate message. If you are only re-checking a file you already accepted, clear the replay history and verify again."
+      }
+    ],
+    "audio": [
+      {
+        "name": "Edit outside payload",
+        "what": "Flipped the top bit of 500 bytes that hold no payload",
+        "expected": [
+          "Tampered"
+        ],
+        "got": "Tampered",
+        "passed": true,
+        "reason": "Signature is valid, but the media hash doesn't match. The file was modified after it was protected."
+      },
+      {
+        "name": "Flip one payload bit",
+        "what": "Changed a single bit inside the hidden payload",
+        "expected": [
+          "Signature Invalid"
+        ],
+        "got": "Signature Invalid",
+        "passed": true,
+        "reason": "Signature check failed. The embedded payload was altered, or it was signed by a different key than the public key provided."
+      },
+      {
+        "name": "Break length field",
+        "what": "Flipped the top bit of the header's length field",
+        "expected": [
+          "Payload Missing"
+        ],
+        "got": "Payload Missing",
+        "passed": true,
+        "reason": "Header found but the payload body is missing or truncated."
+      },
+      {
+        "name": "Wrong stego key",
+        "what": "Tried to extract with a guessed passphrase",
+        "expected": [
+          "Wrong Start Location"
+        ],
+        "got": "Wrong Start Location",
+        "passed": true,
+        "reason": "No valid header at offset 296640. Either the stego key is wrong (so the derived start location is wrong) or this file has no payload."
+      },
+      {
+        "name": "Off-by-one start",
+        "what": "Read the payload one byte after the real start",
+        "expected": [
+          "Wrong Start Location"
+        ],
+        "got": "Wrong Start Location",
+        "passed": true,
+        "reason": "No valid header at offset 19569. Either the stego key is wrong (so the derived start location is wrong) or this file has no payload."
+      },
+      {
+        "name": "Crop / trim",
+        "what": "Removed one pixel row, or 100 audio frames",
+        "expected": [
+          "Wrong Start Location"
+        ],
+        "got": "Wrong Start Location",
+        "passed": true,
+        "reason": "No valid header at offset 15332. Either the stego key is wrong (so the derived start location is wrong) or this file has no payload."
+      },
+      {
+        "name": "Substitute payload",
+        "what": "Pasted the genuine payload into a different file",
+        "expected": [
+          "Tampered"
+        ],
+        "got": "Tampered",
+        "passed": true,
+        "reason": "Signature is valid, but the media hash doesn't match. The file was modified after it was protected."
+      },
+      {
+        "name": "Lossy re-encode",
+        "what": "JPEG re-compressed the image, or added LSB noise to the audio",
+        "expected": [
+          "Wrong Start Location",
+          "Signature Invalid",
+          "Payload Missing"
+        ],
+        "got": "Wrong Start Location",
+        "passed": true,
+        "reason": "No valid header at offset 19568. Either the stego key is wrong (so the derived start location is wrong) or this file has no payload."
+      },
+      {
+        "name": "Replay",
+        "what": "Presented the same authentic file a second time",
+        "expected": [
+          "Replay Detected"
+        ],
+        "got": "Replay Detected",
+        "passed": true,
+        "reason": "Signature and hash are valid, but this exact payload has been verified before. This file may be a replay of an earlier legitimate message. If you are only re-checking a file you already accepted, clear the replay history and verify again."
+      }
+    ]
+  },
+  "lsb_table": {
+    "image": [
+      {
+        "k": 1,
+        "capacity": 70342,
+        "body": 1093,
+        "used_pct": 1.565,
+        "changed": 4395,
+        "quality": "PSNR 69.2 dB",
+        "verdict": "Authentic"
+      },
+      {
+        "k": 2,
+        "capacity": 140684,
+        "body": 1093,
+        "used_pct": 0.788,
+        "changed": 3319,
+        "quality": "PSNR 65.6 dB",
+        "verdict": "Authentic"
+      },
+      {
+        "k": 3,
+        "capacity": 211026,
+        "body": 1093,
+        "used_pct": 0.529,
+        "changed": 2571,
+        "quality": "PSNR 61.0 dB",
+        "verdict": "Authentic"
+      },
+      {
+        "k": 4,
+        "capacity": 281368,
+        "body": 1093,
+        "used_pct": 0.4,
+        "changed": 2087,
+        "quality": "PSNR 55.9 dB",
+        "verdict": "Authentic"
+      },
+      {
+        "k": 5,
+        "capacity": 351710,
+        "body": 1093,
+        "used_pct": 0.322,
+        "changed": 1704,
+        "quality": "PSNR 52.8 dB",
+        "verdict": "Authentic"
+      },
+      {
+        "k": 6,
+        "capacity": 422052,
+        "body": 1093,
+        "used_pct": 0.27,
+        "changed": 1468,
+        "quality": "PSNR 47.1 dB",
+        "verdict": "Authentic"
+      },
+      {
+        "k": 7,
+        "capacity": 492394,
+        "body": 1093,
+        "used_pct": 0.233,
+        "changed": 1267,
+        "quality": "PSNR 40.0 dB",
+        "verdict": "Authentic"
+      },
+      {
+        "k": 8,
+        "capacity": 562736,
+        "body": 1093,
+        "used_pct": 0.206,
+        "changed": 1127,
+        "quality": "PSNR 37.1 dB",
+        "verdict": "Authentic"
+      }
+    ],
+    "audio": [
+      {
+        "k": 1,
+        "capacity": 44092,
+        "body": 1093,
+        "used_pct": 2.497,
+        "changed": 4427,
+        "quality": "SNR 96.1 dB",
+        "verdict": "Authentic"
+      },
+      {
+        "k": 2,
+        "capacity": 88184,
+        "body": 1093,
+        "used_pct": 1.257,
+        "changed": 3326,
+        "quality": "SNR 92.5 dB",
+        "verdict": "Authentic"
+      },
+      {
+        "k": 3,
+        "capacity": 132276,
+        "body": 1093,
+        "used_pct": 0.844,
+        "changed": 2605,
+        "quality": "SNR 87.8 dB",
+        "verdict": "Authentic"
+      },
+      {
+        "k": 4,
+        "capacity": 176368,
+        "body": 1093,
+        "used_pct": 0.638,
+        "changed": 2072,
+        "quality": "SNR 83.3 dB",
+        "verdict": "Authentic"
+      },
+      {
+        "k": 5,
+        "capacity": 220460,
+        "body": 1093,
+        "used_pct": 0.514,
+        "changed": 1720,
+        "quality": "SNR 78.0 dB",
+        "verdict": "Authentic"
+      },
+      {
+        "k": 6,
+        "capacity": 264552,
+        "body": 1093,
+        "used_pct": 0.431,
+        "changed": 1468,
+        "quality": "SNR 72.9 dB",
+        "verdict": "Authentic"
+      },
+      {
+        "k": 7,
+        "capacity": 308644,
+        "body": 1093,
+        "used_pct": 0.372,
+        "changed": 1273,
+        "quality": "SNR 67.5 dB",
+        "verdict": "Authentic"
+      },
+      {
+        "k": 8,
+        "capacity": 352736,
+        "body": 1093,
+        "used_pct": 0.328,
+        "changed": 1117,
+        "quality": "SNR 62.7 dB",
+        "verdict": "Authentic"
+      }
+    ]
+  },
+  "pytest": "64 passed in 8.36s",
+  "a_to_b": {
+    "p1_image_stego.png": "e88ad98787bf7ca49d8e563300c72843515f6cd777ed4c0e1eec366f097a3402",
+    "p2_audio_stego.wav": "0a0fe88acc995edabd5fd7687fa51da47f41e290b1bd42ecc44fca9adfe8fec1"
+  }
+}

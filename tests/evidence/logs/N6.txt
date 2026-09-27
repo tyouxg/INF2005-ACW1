@@ -1,0 +1,112 @@
+# N6 First verify
+$ python -m stego.cli verify tests/evidence/files/p1_image_stego.png --key p6-4-demo-key --pub keys/public_key.pem
+Verdict: Authentic
+Signature valid and media hash matches.
+Message: Explain how steganography can be used to embed hidden verification data in image and audio cover objects.
+{
+  "details": {
+    "start": 493246,
+    "carrier_units": 562800,
+    "k": 2,
+    "body_len": 526,
+    "expected_hash": "f97f1265bd0d420afdae41ee320c9d00754ea6258bfc6cee64111b3b9de87b7a",
+    "current_hash": "f97f1265bd0d420afdae41ee320c9d00754ea6258bfc6cee64111b3b9de87b7a"
+  },
+  "payload": {
+    "file": "image_cover.png",
+    "kind": "image",
+    "lsb": 2,
+    "media_hash": "f97f1265bd0d420afdae41ee320c9d00754ea6258bfc6cee64111b3b9de87b7a",
+    "media_id": "7c284993d7ae",
+    "message": {
+      "enc": false,
+      "text": "Explain how steganography can be used to embed hidden verification data in image and audio cover objects."
+    },
+    "meta": {
+      "team": "P6-4",
+      "tool": "INF2005-ACW1 stego"
+    },
+    "nonce": "2ca2f964827791b769ed923e96af4730",
+    "signer": "4f5c22730b9b77f2",
+    "timestamp": "2026-09-27T12:46:22+00:00",
+    "v": 1
+  }
+}
+(exit code 0)
+
+# Second verify of the same file
+$ python -m stego.cli verify tests/evidence/files/p1_image_stego.png --key p6-4-demo-key --pub keys/public_key.pem
+Verdict: Replay Detected
+Signature and hash are valid, but this exact payload has been verified before. This file may be a replay of an earlier legitimate message. If you are only re-checking a file you already accepted, clear the replay history and verify again.
+Message: Explain how steganography can be used to embed hidden verification data in image and audio cover objects.
+{
+  "details": {
+    "start": 493246,
+    "carrier_units": 562800,
+    "k": 2,
+    "body_len": 526,
+    "expected_hash": "f97f1265bd0d420afdae41ee320c9d00754ea6258bfc6cee64111b3b9de87b7a",
+    "current_hash": "f97f1265bd0d420afdae41ee320c9d00754ea6258bfc6cee64111b3b9de87b7a"
+  },
+  "payload": {
+    "file": "image_cover.png",
+    "kind": "image",
+    "lsb": 2,
+    "media_hash": "f97f1265bd0d420afdae41ee320c9d00754ea6258bfc6cee64111b3b9de87b7a",
+    "media_id": "7c284993d7ae",
+    "message": {
+      "enc": false,
+      "text": "Explain how steganography can be used to embed hidden verification data in image and audio cover objects."
+    },
+    "meta": {
+      "team": "P6-4",
+      "tool": "INF2005-ACW1 stego"
+    },
+    "nonce": "2ca2f964827791b769ed923e96af4730",
+    "signer": "4f5c22730b9b77f2",
+    "timestamp": "2026-09-27T12:46:22+00:00",
+    "v": 1
+  }
+}
+(exit code 1)
+
+# Clearing the history (what we do before the demo)
+$ python -m stego.cli clear-replay
+Forgot 1 accepted payload(s). Verifying them again will say Authentic.
+(exit code 0)
+
+# Verify again after clearing
+$ python -m stego.cli verify tests/evidence/files/p1_image_stego.png --key p6-4-demo-key --pub keys/public_key.pem
+Verdict: Authentic
+Signature valid and media hash matches.
+Message: Explain how steganography can be used to embed hidden verification data in image and audio cover objects.
+{
+  "details": {
+    "start": 493246,
+    "carrier_units": 562800,
+    "k": 2,
+    "body_len": 526,
+    "expected_hash": "f97f1265bd0d420afdae41ee320c9d00754ea6258bfc6cee64111b3b9de87b7a",
+    "current_hash": "f97f1265bd0d420afdae41ee320c9d00754ea6258bfc6cee64111b3b9de87b7a"
+  },
+  "payload": {
+    "file": "image_cover.png",
+    "kind": "image",
+    "lsb": 2,
+    "media_hash": "f97f1265bd0d420afdae41ee320c9d00754ea6258bfc6cee64111b3b9de87b7a",
+    "media_id": "7c284993d7ae",
+    "message": {
+      "enc": false,
+      "text": "Explain how steganography can be used to embed hidden verification data in image and audio cover objects."
+    },
+    "meta": {
+      "team": "P6-4",
+      "tool": "INF2005-ACW1 stego"
+    },
+    "nonce": "2ca2f964827791b769ed923e96af4730",
+    "signer": "4f5c22730b9b77f2",
+    "timestamp": "2026-09-27T12:46:22+00:00",
+    "v": 1
+  }
+}
+(exit code 0)

@@ -1,0 +1,45 @@
+# N4 Attacker signs with their own key, receiver uses A's public key
+$ python -m stego.cli protect tests/evidence/files/image_cover.png tests/evidence/files/n4_image_forged.png -k 2 --key p6-4-demo-key --msg "Release approved: batch 99" --priv tests/evidence/files/attacker_keys/private_key.pem
+{
+  "saved": "tests/evidence/files/n4_image_forged.png",
+  "start": 493246,
+  "k": 2,
+  "body_len": 447,
+  "units_used": 1852,
+  "carrier_units": 562800,
+  "percent_used": 0.3290689410092395,
+  "payload": {
+    "v": 1,
+    "media_id": "2f81212e9faa",
+    "kind": "image",
+    "file": "image_cover.png",
+    "timestamp": "2026-09-27T12:46:24+00:00",
+    "media_hash": "0fad603da223c9135e1e56798b4b9feb2df1ff02fe282a0d0f917a678e37a962",
+    "nonce": "2ace6f85305096a6e11e87e8c457bbd0",
+    "lsb": 2,
+    "signer": "88292b3d41f8159c",
+    "meta": {
+      "team": "P6-4",
+      "tool": "INF2005-ACW1 stego"
+    },
+    "message": {
+      "enc": false,
+      "text": "Release approved: batch 99"
+    }
+  }
+}
+(exit code 0)
+
+$ python -m stego.cli verify tests/evidence/files/n4_image_forged.png --key p6-4-demo-key --pub keys/public_key.pem
+Verdict: Signature Invalid
+Signature check failed. The embedded payload was altered, or it was signed by a different key than the public key provided.
+{
+  "details": {
+    "start": 493246,
+    "carrier_units": 562800,
+    "k": 2,
+    "body_len": 447
+  },
+  "payload": null
+}
+(exit code 1)

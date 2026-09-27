@@ -1,0 +1,190 @@
+{
+  "image": [
+    {
+      "name": "Edit outside payload",
+      "what": "Flipped the top bit of 500 bytes that hold no payload",
+      "expected": [
+        "Tampered"
+      ],
+      "got": "Tampered",
+      "passed": true,
+      "reason": "Signature is valid, but the media hash doesn't match. The file was modified after it was protected."
+    },
+    {
+      "name": "Flip one payload bit",
+      "what": "Changed a single bit inside the hidden payload",
+      "expected": [
+        "Signature Invalid"
+      ],
+      "got": "Signature Invalid",
+      "passed": true,
+      "reason": "Signature check failed. The embedded payload was altered, or it was signed by a different key than the public key provided."
+    },
+    {
+      "name": "Break length field",
+      "what": "Flipped the top bit of the header's length field",
+      "expected": [
+        "Payload Missing"
+      ],
+      "got": "Payload Missing",
+      "passed": true,
+      "reason": "Header found but the payload body is missing or truncated."
+    },
+    {
+      "name": "Wrong stego key",
+      "what": "Tried to extract with a guessed passphrase",
+      "expected": [
+        "Wrong Start Location"
+      ],
+      "got": "Wrong Start Location",
+      "passed": true,
+      "reason": "No valid header at offset 512916. Either the stego key is wrong (so the derived start location is wrong) or this file has no payload."
+    },
+    {
+      "name": "Off-by-one start",
+      "what": "Read the payload one byte after the real start",
+      "expected": [
+        "Wrong Start Location"
+      ],
+      "got": "Wrong Start Location",
+      "passed": true,
+      "reason": "No valid header at offset 493247. Either the stego key is wrong (so the derived start location is wrong) or this file has no payload."
+    },
+    {
+      "name": "Crop / trim",
+      "what": "Removed one pixel row, or 100 audio frames",
+      "expected": [
+        "Wrong Start Location"
+      ],
+      "got": "Wrong Start Location",
+      "passed": true,
+      "reason": "No valid header at offset 346990. Either the stego key is wrong (so the derived start location is wrong) or this file has no payload."
+    },
+    {
+      "name": "Substitute payload",
+      "what": "Pasted the genuine payload into a different file",
+      "expected": [
+        "Tampered"
+      ],
+      "got": "Tampered",
+      "passed": true,
+      "reason": "Signature is valid, but the media hash doesn't match. The file was modified after it was protected."
+    },
+    {
+      "name": "Lossy re-encode",
+      "what": "JPEG re-compressed the image, or added LSB noise to the audio",
+      "expected": [
+        "Wrong Start Location",
+        "Signature Invalid",
+        "Payload Missing"
+      ],
+      "got": "Wrong Start Location",
+      "passed": true,
+      "reason": "No valid header at offset 493246. Either the stego key is wrong (so the derived start location is wrong) or this file has no payload."
+    },
+    {
+      "name": "Replay",
+      "what": "Presented the same authentic file a second time",
+      "expected": [
+        "Replay Detected"
+      ],
+      "got": "Replay Detected",
+      "passed": true,
+      "reason": "Signature and hash are valid, but this exact payload has been verified before. This file may be a replay of an earlier legitimate message. If you are only re-checking a file you already accepted, clear the replay history and verify again."
+    }
+  ],
+  "audio": [
+    {
+      "name": "Edit outside payload",
+      "what": "Flipped the top bit of 500 bytes that hold no payload",
+      "expected": [
+        "Tampered"
+      ],
+      "got": "Tampered",
+      "passed": true,
+      "reason": "Signature is valid, but the media hash doesn't match. The file was modified after it was protected."
+    },
+    {
+      "name": "Flip one payload bit",
+      "what": "Changed a single bit inside the hidden payload",
+      "expected": [
+        "Signature Invalid"
+      ],
+      "got": "Signature Invalid",
+      "passed": true,
+      "reason": "Signature check failed. The embedded payload was altered, or it was signed by a different key than the public key provided."
+    },
+    {
+      "name": "Break length field",
+      "what": "Flipped the top bit of the header's length field",
+      "expected": [
+        "Payload Missing"
+      ],
+      "got": "Payload Missing",
+      "passed": true,
+      "reason": "Header found but the payload body is missing or truncated."
+    },
+    {
+      "name": "Wrong stego key",
+      "what": "Tried to extract with a guessed passphrase",
+      "expected": [
+        "Wrong Start Location"
+      ],
+      "got": "Wrong Start Location",
+      "passed": true,
+      "reason": "No valid header at offset 296640. Either the stego key is wrong (so the derived start location is wrong) or this file has no payload."
+    },
+    {
+      "name": "Off-by-one start",
+      "what": "Read the payload one byte after the real start",
+      "expected": [
+        "Wrong Start Location"
+      ],
+      "got": "Wrong Start Location",
+      "passed": true,
+      "reason": "No valid header at offset 19569. Either the stego key is wrong (so the derived start location is wrong) or this file has no payload."
+    },
+    {
+      "name": "Crop / trim",
+      "what": "Removed one pixel row, or 100 audio frames",
+      "expected": [
+        "Wrong Start Location"
+      ],
+      "got": "Wrong Start Location",
+      "passed": true,
+      "reason": "No valid header at offset 15332. Either the stego key is wrong (so the derived start location is wrong) or this file has no payload."
+    },
+    {
+      "name": "Substitute payload",
+      "what": "Pasted the genuine payload into a different file",
+      "expected": [
+        "Tampered"
+      ],
+      "got": "Tampered",
+      "passed": true,
+      "reason": "Signature is valid, but the media hash doesn't match. The file was modified after it was protected."
+    },
+    {
+      "name": "Lossy re-encode",
+      "what": "JPEG re-compressed the image, or added LSB noise to the audio",
+      "expected": [
+        "Wrong Start Location",
+        "Signature Invalid",
+        "Payload Missing"
+      ],
+      "got": "Wrong Start Location",
+      "passed": true,
+      "reason": "No valid header at offset 19568. Either the stego key is wrong (so the derived start location is wrong) or this file has no payload."
+    },
+    {
+      "name": "Replay",
+      "what": "Presented the same authentic file a second time",
+      "expected": [
+        "Replay Detected"
+      ],
+      "got": "Replay Detected",
+      "passed": true,
+      "reason": "Signature and hash are valid, but this exact payload has been verified before. This file may be a replay of an earlier legitimate message. If you are only re-checking a file you already accepted, clear the replay history and verify again."
+    }
+  ]
+}
