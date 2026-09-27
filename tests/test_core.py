@@ -6,8 +6,9 @@ from PIL import Image
 
 from stego import messages
 from stego.core import crypto, imagetools, lsb, media
+from stego.core import replay
 from stego.core.protect import (AUTHENTIC, SIGNATURE_INVALID, TAMPERED, WRONG_START,
-                                CapacityError, protect, verify)
+                                CapacityError, capacity_bytes, protect, verify)
 
 KEY = "correct horse battery staple"
 
@@ -17,6 +18,12 @@ def keys():
     priv = crypto.generate_keypair()
     return priv, priv.public_key()
 
+# Runs automatically for every test,
+# keeps replay checks off the real seen_nonces.json,
+# so test runs will not polute the real seen_nonces.json with fake "verified" entries.
+@pytest.fixture(autouse=True)
+def isolated_replay_store(tmp_path, monkeypatch):
+    monkeypatch.setattr(replay, "DEFAULT_STORE", tmp_path / "seen_nonces.json")
 
 @pytest.fixture
 def png(tmp_path):
@@ -38,6 +45,45 @@ def wav(tmp_path):
         w.setframerate(44100)
         w.writeframes(samples.tobytes())
     return path
+
+
+def write_pcm_wav(path, channels, sampwidth, framerate=44100, seconds=2):
+    """Create a deterministic PCM tone for format-level audio tests."""
+    frames = int(framerate * seconds)
+    t = np.arange(frames) / framerate
+    signals = []
+    for channel in range(channels):
+        signals.append(0.45 * np.sin(2 * np.pi * (330 + channel * 110) * t))
+    values = np.column_stack(signals)
+
+    if sampwidth == 1:
+        raw = np.clip(np.round((values + 1) * 127.5), 0, 255).astype(np.uint8)
+        data = raw.tobytes()
+    elif sampwidth == 2:
+        raw = np.round(values * ((1 << 15) - 1)).astype("<i2")
+        data = raw.tobytes()
+    elif sampwidth == 3:
+        integers = np.round(values * ((1 << 23) - 1)).astype(np.int32).reshape(-1)
+        unsigned = integers & 0xFFFFFF
+        raw = np.column_stack((unsigned & 0xFF, (unsigned >> 8) & 0xFF,
+                               (unsigned >> 16) & 0xFF)).astype(np.uint8)
+        data = raw.tobytes()
+    else:
+        raise ValueError("test helper supports 8-, 16-, and 24-bit PCM only")
+
+    with wave.open(str(path), "wb") as w:
+        w.setnchannels(channels)
+        w.setsampwidth(sampwidth)
+        w.setframerate(framerate)
+        w.writeframes(data)
+
+
+@pytest.fixture(params=[(1, 1), (2, 1), (1, 2), (2, 2), (1, 3), (2, 3)])
+def pcm_wav(tmp_path, request):
+    channels, sampwidth = request.param
+    path = tmp_path / f"{channels}ch_{sampwidth * 8}bit.wav"
+    write_pcm_wav(path, channels, sampwidth)
+    return path, channels, sampwidth
 
 
 def roundtrip(path, tmp_path, keys, k, text, **kw):
@@ -76,6 +122,38 @@ def test_audio_high_byte_untouched(wav, tmp_path, keys):
     cover = media.load_cover(wav)
     stego, _ = roundtrip(wav, tmp_path, keys, 8, messages.LONG)
     assert np.array_equal(cover.data[1::2], stego.data[1::2])
+
+
+def test_audio_formats_roundtrip_and_preserve_non_carrier_bytes(pcm_wav, tmp_path, keys):
+    path, channels, sampwidth = pcm_wav
+    cover = media.load_cover(path)
+    stego, _ = roundtrip(path, tmp_path, keys, 2, messages.SHORT)
+
+    assert verify(stego, KEY, keys[1]).verdict == AUTHENTIC
+    assert stego.params == cover.params
+    assert len(stego.carrier) == cover.params["nframes"] * channels
+    if sampwidth > 1:
+        non_carrier = np.arange(len(cover.data)) % sampwidth != 0
+        assert np.array_equal(cover.data[non_carrier], stego.data[non_carrier])
+
+
+@pytest.mark.parametrize("sampwidth", [1, 2, 3])
+def test_audio_waveform_is_normalised_for_pcm_widths(tmp_path, sampwidth):
+    path = tmp_path / f"waveform_{sampwidth}.wav"
+    write_pcm_wav(path, channels=2, sampwidth=sampwidth, seconds=0.1)
+    lows, highs = media.audio_waveform(media.load_cover(path), points=20)
+    assert len(lows) == len(highs) == 20
+    assert np.all(lows <= highs)
+    assert np.all(lows >= -1.01)
+    assert np.all(highs <= 1.01)
+
+
+def test_stereo_ten_second_capacity_at_two_lsbs(tmp_path):
+    path = tmp_path / "ten_seconds_stereo.wav"
+    write_pcm_wav(path, channels=2, sampwidth=2, seconds=10)
+    cover = media.load_cover(path)
+    assert len(cover.carrier) == 10 * 44_100 * 2
+    assert capacity_bytes(cover, 2) == 220_484
 
 
 def test_encrypted_message(png, tmp_path, keys):
@@ -174,3 +252,18 @@ def test_jpeg_recompression_destroys_payload(png, tmp_path, keys):
     recompressed = tmp_path / "recompressed.jpg"
     Image.fromarray(stego.data.reshape(120, 160, 3)).save(recompressed, quality=95)
     assert verify(media.load_cover(recompressed), KEY, keys[1]).verdict != AUTHENTIC
+def test_replay_nonce_unseen_by_default(tmp_path):
+    store = tmp_path / "seen_nonces.json"
+    assert replay.seen_before("abc123", path=store) is False
+
+
+def test_replay_nonce_seen_after_record(tmp_path):
+    store = tmp_path / "seen_nonces.json"
+    replay.record("abc123", path=store)
+    assert replay.seen_before("abc123", path=store) is True
+
+
+def test_replay_different_nonce_not_flagged(tmp_path):
+    store = tmp_path / "seen_nonces.json"
+    replay.record("abc123", path=store)
+    assert replay.seen_before("xyz789", path=store) is False

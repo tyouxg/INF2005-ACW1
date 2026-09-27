@@ -5,9 +5,10 @@ venv/
 .venv/
 *.egg-info/
 
-# Private keys — never commit these
-keys/private_key.pem
+# keys/private_key.pem IS committed on purpose: it's the team's shared demo key,
+# generated only for this assignment. Any other key file stays out.
 *.key
+keys/seen_nonces.json
 
 # OS/editor junk
 .DS_Store
@@ -18,3 +19,4 @@ keys/private_key.pem
 tests/evidence/*.tmp
 /documents
 .pytest_cache/
+.pytest-tmp/

@@ -18,12 +18,31 @@ pip install -r requirements.txt
 ```
 python -m stego.gui             # GUI: Sender, Receiver and Keys tabs
 python -m stego.cli --help      # command line version of the same thing
+python -m stego.cli capacity cover.png -k 1 --msg-file long.txt   # exact size check, no embedding
 python -m pytest                # tests
 ```
 
-First time: open the **Keys** tab (or run `python -m stego.cli keygen`) to create
-`keys/private_key.pem` and `keys/public_key.pem`. The private key is gitignored and only the public
-key is submitted. The key pair is generated just for this assignment demo.
+## Keys
+
+Two different secrets are used here, and they are not the same thing:
+
+- **Signing key pair (Ed25519):** one private key, one public key. The sender signs the payload with
+  the private key; the receiver checks the signature with the public key. The team's demo pair is
+  already in `keys/`. **Don't regenerate it** (Keys tab or `stego.cli keygen`): a new pair won't
+  verify files signed with the team key.
+- **Stego key:** a shared passphrase typed into both the Sender and Receiver tabs. It is not a file
+  and not the same as the signing key pair above. It derives the payload's start location and the
+  optional AES-GCM encryption key.
+
+What to share with the receiver: your **public key** (`public_key.pem`) and the **stego key**
+(passphrase), agreed on separately from the stego file itself, e.g. in person or over a different
+channel.
+
+In a real deployment the **private key** (`private_key.pem`) would never leave the signer's machine:
+anyone holding it can sign payloads that falsely appear to come from you. Here it is committed on
+purpose, because the key pair was generated solely for this assignment demo (the spec allows
+submitting demo-only keys) and every team member needs the same key to sign and verify. Treat it as
+public and never reuse it for anything real.
 
 ## Workflow
 
@@ -36,6 +55,19 @@ key is submitted. The key pair is generated just for this assignment demo.
 
 Verdicts: **Authentic**, **Tampered**, **Signature Invalid**, **Payload Missing**,
 **Wrong Start Location**, **Cannot Verify**.
+
+## M2 audio demo assets
+
+Generate the reproducible M2 WAV cover, long-message stego file and amplified
+tamper case with:
+
+```
+.venv\Scripts\python tools\generate_audio_samples.py
+```
+
+The files are written to `samples/audio/`. Use its `README.md` for the demo
+stego key, public key, verification commands and the precise Audacity workflow.
+The GUI WAV previews include a waveform, allowing a before/after comparison.
 
 ## Design summary
 

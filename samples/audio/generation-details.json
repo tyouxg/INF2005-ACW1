@@ -1,0 +1,16 @@
+{
+  "cover": "cover_stereo_music.wav",
+  "stego": "stego_long_message.wav",
+  "tampered": "tampered_amplified_section.wav",
+  "sample_rate_hz": 44100,
+  "channels": 2,
+  "sample_width_bits": 16,
+  "duration_seconds": 8,
+  "lsbs": 2,
+  "stego_key_for_coursework_demo_only": "m2-audio-demo-key",
+  "payload_start_carrier_index": 595863,
+  "embedded_carrier_units": 4464,
+  "tampered_section_start_seconds": 0.0,
+  "tampered_section_duration_seconds": 0.5,
+  "expected_tampered_verdict": "Tampered"
+}
