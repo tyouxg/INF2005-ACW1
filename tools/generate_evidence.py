@@ -4,6 +4,7 @@ Run from the repository root:
     .venv\Scripts\python tools\generate_evidence.py
 
 Everything lands in tests/evidence/ (files/, logs/, screenshots/, results.json).
+It also covers the optional challenges: video covers, robust mode and steganalysis.
 It drives the real CLI and the real GUI (offscreen), uses the team's committed
 demo key pair so anyone can re-check the files, and runs inside a throwaway
 replay store so the real keys/seen_nonces.json is never touched.
@@ -39,7 +40,7 @@ from PySide6.QtGui import QFont                                      # noqa: E40
 from PySide6.QtWidgets import QApplication                           # noqa: E402
 
 from stego import cli, messages                                      # noqa: E402
-from stego.core import attacks, crypto, media, protect, replay, visual  # noqa: E402
+from stego.core import attacks, crypto, media, protect, replay, steganalysis, visual  # noqa: E402
 from stego.gui import receiver as receiver_mod                       # noqa: E402
 from stego.gui import sender as sender_mod                           # noqa: E402
 from stego.gui.app import MainWindow                                 # noqa: E402
@@ -159,11 +160,12 @@ class Gui:
         self.win.grab().save(str(path))
         return path.as_posix()
 
-    def protect(self, cover, preset, k, out, key=KEY) -> str:
+    def protect(self, cover, preset, k, out, key=KEY, robust="Off") -> str:
         s = self.win.sender
         s.cover_pick.edit.setText(str(cover))
         s.preset.setCurrentText(preset)
         s.k.setValue(k)
+        s.robust.setCurrentText(robust)
         s.stego_key.setText(key)
         # answer the "Save stego file" dialog with our chosen path
         sender_mod.QFileDialog.getSaveFileName = lambda *a, **kw: (str(out), "")
@@ -180,6 +182,13 @@ class Gui:
         self.pump()
         return r.verdict.text().title()
 
+    def scan(self, path):
+        t = self.win.steganalysis
+        t.file_pick.edit.setText(str(path))
+        t.run()
+        self.pump()
+        return t.verdict.text()
+
     def attack_lab(self, path, key=KEY, pub=PUB):
         a = self.win.attack_lab
         a.file_pick.edit.setText(str(path))
@@ -191,9 +200,9 @@ class Gui:
 
 # --- the demo cases ---
 
-def positive(gui, cid, title, cover, kind, preset, k, name, requirement):
+def positive(gui, cid, title, cover, kind, preset, k, name, requirement, robust="Off"):
     out = FILES / name
-    sender_log = gui.protect(cover, preset, k, out)
+    sender_log = gui.protect(cover, preset, k, out, robust=robust)
     s1 = gui.shot(f"{cid}_sender", 0)
     replay.clear()
     verify_log = cli_run(["verify", out.as_posix(), "--key", KEY, "--pub", PUB])
@@ -329,6 +338,111 @@ def negative_cases(gui, p1, p2):
              f"verify() said {verdict7}: the payload doesn't survive lossy compression.")
 
 
+# --- optional challenges: video, robust mode, steganalysis ---
+
+def make_video(path):
+    # A short pan across the same photo, so the video has real content in it
+    img = np.array(Image.open(FILES / "image_cover.png"))
+    frames = np.stack([img[40 + 4 * i: 280 + 4 * i, 40:360] for i in range(24)])
+    media.save_cover(media.Cover("video", frames.reshape(-1).copy(), 1,
+                                 {"width": 320, "height": 240, "frames": 24, "fps": 12.0}), path)
+
+
+def black_out_other_frame(stego_path, out, payload_frame):
+    # Black out a box in a frame that doesn't hold the payload (the first one,
+    # or the last if the key happened to put the payload in the first)
+    t = media.load_cover(stego_path)
+    p = t.params
+    target = 0 if payload_frame != 0 else p["frames"] - 1
+    size = p["width"] * p["height"] * 3
+    frame = t.data[target * size:(target + 1) * size].reshape(p["height"], p["width"], 3)
+    frame[60:140, 100:220] = 0
+    media.save_cover(t, out)
+    return target
+
+
+def attack_rows(path, key=KEY):
+    rows = attacks.run_all(media.load_cover(path), key, crypto.load_public_key(PUB))
+    return [{"name": r.name, "what": r.what, "expected": list(r.expected), "got": r.got,
+             "passed": r.passed, "recovered": r.recovered, "reason": r.reason} for r in rows]
+
+
+def advanced_cases(gui, image_cover):
+    adv = {}
+
+    # Video: positive, then a different frame edited after protection, then the Attack Lab
+    video_cover = FILES / "video_cover.mkv"
+    make_video(video_cover)
+    v1 = positive(gui, "V1", "Video (FFV1 .mkv), short message, 2 LSBs", video_cover, "video",
+                  "Short (learning outcome)", 2, "v1_video_stego.mkv",
+                  "Optional challenge: video cover object")
+    frame = visual.first_changed_frame(media.load_cover(video_cover), media.load_cover(v1))
+    v2 = FILES / "v2_video_tampered.mkv"
+    edited = black_out_other_frame(v1, v2, frame)
+    log = cli_run(["verify", v2.as_posix(), "--key", KEY, "--pub", PUB])
+    got = gui.verify(v2)
+    shot = gui.shot("V2_receiver_video_tampered", 1)
+    add_case("V2", "Video: a different frame edited after protection", v2.as_posix(), "video",
+             "Optional challenge: video cover object", protect.TAMPERED, got,
+             write_log("V2", f"# V2 Box blacked out in frame {edited + 1}", log), [shot],
+             f"The payload sits in frame {frame + 1} of 24 and frame {edited + 1} was edited. It is "
+             "still caught, because the media hash covers every frame.")
+    adv["video"] = {"payload_frame": frame + 1, "frames": 24, "attacks": attack_rows(v1)}
+    gui.attack_lab(v1)
+    gui.shot("attack_lab_video", 2)
+
+    # Robust mode: the same cover, normal vs x5 repetition, same attacks
+    robust_file = FILES / "r1_image_robust_x5.png"
+    positive(gui, "R1", "Image, robust mode (x5 repetition), 2 LSBs", image_cover, "image",
+             "Short (learning outcome)", 2, robust_file.name,
+             "Optional challenge: robust embedding", robust="x5 repetition")
+    adv["robust"] = {"normal": attack_rows(FILES / "p1_image_stego.png"),
+                     "robust": attack_rows(robust_file)}
+    gui.attack_lab(robust_file)
+    gui.shot("attack_lab_robust", 2)
+    normal_ok = {r["name"] for r in adv["robust"]["normal"] if r["recovered"]}
+    survived = sorted({r["name"] for r in adv["robust"]["robust"] if r["recovered"]} - normal_ok)
+    ok = {"Mild LSB noise", "Scratch over payload"} <= set(survived)
+    add_case("R2", "Robust file vs normal file under noise and a scratch", robust_file.as_posix(),
+             "image", "Optional challenge: robust embedding", "Payload recovered",
+             "Payload recovered" if ok else "Lost",
+             write_log("R2", json.dumps(adv["robust"], indent=2)), [],
+             "Only the robust file keeps its signed payload after: " + ", ".join(survived) + ".")
+
+    # Steganalysis: an old version 1 file, M2's real sample, our v2 files, a clean cover
+    legacy = FILES / "s1_legacy_v1_stego.png"
+    st, _, _ = protect.protect(media.load_cover(image_cover), image_cover.name, messages.SHORT, 2,
+                               KEY, crypto.load_private_key(PRIV), version=1)
+    media.save_cover(st, legacy)
+    scans = []
+    for label, path in (("Version 1 file (body not masked)", legacy),
+                        ("M2's audio sample (made with version 1)",
+                         Path("samples/audio/stego_long_message.wav")),
+                        ("P1, made with version 2 (body masked)", FILES / "p1_image_stego.png"),
+                        ("R1, robust version 2 file", robust_file),
+                        ("Clean cover, nothing hidden", image_cover)):
+        r = steganalysis.scan(media.load_cover(path))
+        scans.append({"label": label, "file": path.as_posix(), "found": r.found, "k": r.k,
+                      "start": r.start, "end": r.end, "text": r.text[:400],
+                      "chi_square_embedded": round(r.chi_square_embedded, 3)})
+    adv["steganalysis"] = scans
+    scan_log = "\n".join(cli_run(["scan", x["file"]]) for x in scans)
+    log = write_log("S1", "# Steganalysis: no stego key, no public key, just the file", scan_log)
+    got = gui.scan(legacy)
+    s1 = gui.shot("S1_steganalysis_v1_found", 3)
+    add_case("S1", "Steganalysis reads a version 1 payload without the key", legacy.as_posix(),
+             "image", "Optional challenge: steganalysis", "Hidden Text Found", got.title(), log, [s1],
+             "The structure scan finds the JSON, the LSB count and the location, and reads the "
+             "message out.")
+    got = gui.scan(FILES / "p1_image_stego.png")
+    s2 = gui.shot("S2_steganalysis_v2_nothing", 3)
+    add_case("S2", "Steganalysis finds nothing in a version 2 (masked) file",
+             (FILES / "p1_image_stego.png").as_posix(), "image", "Our fix for S1",
+             "Nothing Found", got.title(), log, [s2],
+             "Masking the body with a key-derived stream removes the structure the scan relies on.")
+    return adv
+
+
 # --- LSB selection table ---
 
 def lsb_table(cover_path, kind):
@@ -383,6 +497,7 @@ def main():
                  "Positive audio case at the LSB extreme")
 
         negative_cases(gui, p1, p2)
+        advanced = advanced_cases(gui, image_cover)
 
         # the innovation: every attack against one image and one audio file
         attack_results = {}
@@ -426,6 +541,7 @@ def main():
         "attacks": attack_results,
         "lsb_table": lsb,
         "pytest": summary,
+        "advanced": advanced,
         "a_to_b": {name: sha256(FILES / name) for name in ("p1_image_stego.png", "p2_audio_stego.wav")},
     }
     (OUT / "results.json").write_text(json.dumps(results, indent=2), encoding="utf-8")

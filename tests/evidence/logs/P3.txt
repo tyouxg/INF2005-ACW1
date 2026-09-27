@@ -4,13 +4,13 @@ Saved tests\evidence\files\p3_image_custom_encrypted.png
 Start offset 493,246 of 562,800 carrier bytes, 3 LSB(s), 761 byte body, 0.37% of carrier used
 
 {
-  "v": 1,
-  "media_id": "f516b215a910",
+  "v": 2,
+  "media_id": "f91511402cb8",
   "kind": "image",
   "file": "image_cover.png",
-  "timestamp": "2026-09-27T12:46:22+00:00",
+  "timestamp": "2026-09-27T17:16:52+00:00",
   "media_hash": "6c7a2bcbd4973c170458199f3fde41ef981a613a93787e341eb4bb3cbcac8c5a",
-  "nonce": "de5c4ad601612060018a889693e382f3",
+  "nonce": "55d7d320e7ba06212eea9c615177e47a",
   "lsb": 3,
   "signer": "4f5c22730b9b77f2",
   "meta": {
@@ -19,9 +19,9 @@ Start offset 493,246 of 562,800 carrier bytes, 3 LSB(s), 761 byte body, 0.37% of
   },
   "message": {
     "enc": true,
-    "salt": "6b54cf3e51fa2b9f594540d6a1717c57",
-    "nonce": "55df40746ef65ec45775f671",
-    "ct": "9f5d3cb2880c98678a68f68c0d85afe884985f279bffbfe6de0034d765e85b9454ac4e90ff879d185673e89a01b8e8ca4155397f835ac30b91e85373eb45059c5354fecf309c75e00b8a19f11968bdd0c64ad3af1a05829f3e5900d0c57b4ee5ea69ce28f061ba2bb79cf32d88386bc6dcc75247a0d888e1df8f8c3fa0edc4b414e879532d"
+    "salt": "ebf33e9ea72aff3cb314206fea222a76",
+    "nonce": "54fb62d26a6fb7218c192ed1",
+    "ct": "f1f46ef97ee88af8d3809ee742f3276b746a70a8c8a967dd41d2c4d705656af753701059c668347bf101f5cc569c4493126ba7149f0cd669c6bbb9764977854cda435fd45fcb3314861591a74d1c80cc2aae3b90b14daed78f61fdbe43b82961f3b424742e8df62fe913d32f9b64a24a9355fcacb8f0ac4331142cd11ab4e8645fb43796ec"
   }
 }
 ## Receiver side (CLI)
@@ -35,6 +35,9 @@ Message: Donor match confirmed for patient P-4471, transplant scheduled 5 Oct 06
     "carrier_units": 562800,
     "k": 3,
     "body_len": 761,
+    "reps": 1,
+    "version": 2,
+    "header_units": 64,
     "expected_hash": "6c7a2bcbd4973c170458199f3fde41ef981a613a93787e341eb4bb3cbcac8c5a",
     "current_hash": "6c7a2bcbd4973c170458199f3fde41ef981a613a93787e341eb4bb3cbcac8c5a"
   },
@@ -43,21 +46,21 @@ Message: Donor match confirmed for patient P-4471, transplant scheduled 5 Oct 06
     "kind": "image",
     "lsb": 3,
     "media_hash": "6c7a2bcbd4973c170458199f3fde41ef981a613a93787e341eb4bb3cbcac8c5a",
-    "media_id": "f516b215a910",
+    "media_id": "f91511402cb8",
     "message": {
-      "ct": "9f5d3cb2880c98678a68f68c0d85afe884985f279bffbfe6de0034d765e85b9454ac4e90ff879d185673e89a01b8e8ca4155397f835ac30b91e85373eb45059c5354fecf309c75e00b8a19f11968bdd0c64ad3af1a05829f3e5900d0c57b4ee5ea69ce28f061ba2bb79cf32d88386bc6dcc75247a0d888e1df8f8c3fa0edc4b414e879532d",
+      "ct": "f1f46ef97ee88af8d3809ee742f3276b746a70a8c8a967dd41d2c4d705656af753701059c668347bf101f5cc569c4493126ba7149f0cd669c6bbb9764977854cda435fd45fcb3314861591a74d1c80cc2aae3b90b14daed78f61fdbe43b82961f3b424742e8df62fe913d32f9b64a24a9355fcacb8f0ac4331142cd11ab4e8645fb43796ec",
       "enc": true,
-      "nonce": "55df40746ef65ec45775f671",
-      "salt": "6b54cf3e51fa2b9f594540d6a1717c57"
+      "nonce": "54fb62d26a6fb7218c192ed1",
+      "salt": "ebf33e9ea72aff3cb314206fea222a76"
     },
     "meta": {
       "team": "P6-4",
       "tool": "INF2005-ACW1 stego"
     },
-    "nonce": "de5c4ad601612060018a889693e382f3",
+    "nonce": "55d7d320e7ba06212eea9c615177e47a",
     "signer": "4f5c22730b9b77f2",
-    "timestamp": "2026-09-27T12:46:22+00:00",
-    "v": 1
+    "timestamp": "2026-09-27T17:16:52+00:00",
+    "v": 2
   }
 }
 (exit code 0)

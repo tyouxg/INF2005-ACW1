@@ -4,13 +4,13 @@ Saved tests\evidence\files\p4_audio_custom_k8.wav
 Start offset 19,568 of 352,800 carrier bytes, 8 LSB(s), 761 byte body, 0.23% of carrier used
 
 {
-  "v": 1,
-  "media_id": "5cfaa90f9350",
+  "v": 2,
+  "media_id": "ec668e4562e5",
   "kind": "audio",
   "file": "audio_cover.wav",
-  "timestamp": "2026-09-27T12:46:23+00:00",
+  "timestamp": "2026-09-27T17:16:52+00:00",
   "media_hash": "747eb00fa1290013cf668dc7923550c421923eeabf7e0be424d831cab721ed60",
-  "nonce": "c80655e343f11eaf5275287d0486112b",
+  "nonce": "775de1d09fadd98d48471c8dc906d886",
   "lsb": 8,
   "signer": "4f5c22730b9b77f2",
   "meta": {
@@ -19,9 +19,9 @@ Start offset 19,568 of 352,800 carrier bytes, 8 LSB(s), 761 byte body, 0.23% of 
   },
   "message": {
     "enc": true,
-    "salt": "4c54e5d9496669faa506ecef1c41783b",
-    "nonce": "563e9cb805f25a374aa47078",
-    "ct": "cf945ab3d64c9858c45d3110cb2edd5cebe95c4f412c900eac24dae1c4d33877a5c3c35473c135c0bafb2b0f36632ee07de08c3e300ee64f3f429ca67d0769031933562e6cb5ae5a6d44149f8a1a522766ba9305268c889e68e387ad4ee54569b722556a4196226a36907ae40e66dba9376e1c932783db5edb3c2f3040e0b04992b03a4ff6"
+    "salt": "c5b54d0157f2253970133b0e0f87cb27",
+    "nonce": "0fc99e6d4dfa873c3954a604",
+    "ct": "acf9ef2bda6ff0498c7e8ca3943413df4458e1e558265c37ba72c160f736392560e18778e5aef50763318bf66ad69ff68bfc3ca2dcbb2bca89701c73b9283d4380cfa015853041471a61981626984057292972f4a8e196b80988d08c7901c98dacc6d0e3443e92cad41785504a63a94543ff7b770d341f3c7d71f9a18a192f2ccd749ca86a"
   }
 }
 ## Receiver side (CLI)
@@ -35,6 +35,9 @@ Message: Donor match confirmed for patient P-4471, transplant scheduled 5 Oct 06
     "carrier_units": 352800,
     "k": 8,
     "body_len": 761,
+    "reps": 1,
+    "version": 2,
+    "header_units": 64,
     "expected_hash": "747eb00fa1290013cf668dc7923550c421923eeabf7e0be424d831cab721ed60",
     "current_hash": "747eb00fa1290013cf668dc7923550c421923eeabf7e0be424d831cab721ed60"
   },
@@ -43,21 +46,21 @@ Message: Donor match confirmed for patient P-4471, transplant scheduled 5 Oct 06
     "kind": "audio",
     "lsb": 8,
     "media_hash": "747eb00fa1290013cf668dc7923550c421923eeabf7e0be424d831cab721ed60",
-    "media_id": "5cfaa90f9350",
+    "media_id": "ec668e4562e5",
     "message": {
-      "ct": "cf945ab3d64c9858c45d3110cb2edd5cebe95c4f412c900eac24dae1c4d33877a5c3c35473c135c0bafb2b0f36632ee07de08c3e300ee64f3f429ca67d0769031933562e6cb5ae5a6d44149f8a1a522766ba9305268c889e68e387ad4ee54569b722556a4196226a36907ae40e66dba9376e1c932783db5edb3c2f3040e0b04992b03a4ff6",
+      "ct": "acf9ef2bda6ff0498c7e8ca3943413df4458e1e558265c37ba72c160f736392560e18778e5aef50763318bf66ad69ff68bfc3ca2dcbb2bca89701c73b9283d4380cfa015853041471a61981626984057292972f4a8e196b80988d08c7901c98dacc6d0e3443e92cad41785504a63a94543ff7b770d341f3c7d71f9a18a192f2ccd749ca86a",
       "enc": true,
-      "nonce": "563e9cb805f25a374aa47078",
-      "salt": "4c54e5d9496669faa506ecef1c41783b"
+      "nonce": "0fc99e6d4dfa873c3954a604",
+      "salt": "c5b54d0157f2253970133b0e0f87cb27"
     },
     "meta": {
       "team": "P6-4",
       "tool": "INF2005-ACW1 stego"
     },
-    "nonce": "c80655e343f11eaf5275287d0486112b",
+    "nonce": "775de1d09fadd98d48471c8dc906d886",
     "signer": "4f5c22730b9b77f2",
-    "timestamp": "2026-09-27T12:46:23+00:00",
-    "v": 1
+    "timestamp": "2026-09-27T17:16:52+00:00",
+    "v": 2
   }
 }
 (exit code 0)

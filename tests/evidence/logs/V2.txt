@@ -1,26 +1,26 @@
-# N2 Rows 20-59, columns 150-239 set to black
-$ python -m stego.cli verify tests/evidence/files/n2_image_tampered.png --key p6-4-demo-key --pub keys/public_key.pem
+# V2 Box blacked out in frame 1
+$ python -m stego.cli verify tests/evidence/files/v2_video_tampered.mkv --key p6-4-demo-key --pub keys/public_key.pem
 Verdict: Tampered
 Signature is valid, but the media hash doesn't match. The file was modified after it was protected.
 Message: Explain how steganography can be used to embed hidden verification data in image and audio cover objects.
 {
   "details": {
-    "start": 493246,
-    "carrier_units": 562800,
+    "start": 5307204,
+    "carrier_units": 5529600,
     "k": 2,
     "body_len": 526,
     "reps": 1,
     "version": 2,
     "header_units": 64,
-    "expected_hash": "f97f1265bd0d420afdae41ee320c9d00754ea6258bfc6cee64111b3b9de87b7a",
-    "current_hash": "6446491b6a20152b950486de618eec8c2a6a0b181955328701dd244edcc0193a"
+    "expected_hash": "bdb0563ff63b39c063eca90001e17e7176a35179cf7ea1ee71a73744b2de68d2",
+    "current_hash": "216be977bc61fab21f107e81db4ab762f8cab04e94982dfa6e9a5b61a88e6be3"
   },
   "payload": {
-    "file": "image_cover.png",
-    "kind": "image",
+    "file": "video_cover.mkv",
+    "kind": "video",
     "lsb": 2,
-    "media_hash": "f97f1265bd0d420afdae41ee320c9d00754ea6258bfc6cee64111b3b9de87b7a",
-    "media_id": "0f149137f4dd",
+    "media_hash": "bdb0563ff63b39c063eca90001e17e7176a35179cf7ea1ee71a73744b2de68d2",
+    "media_id": "bcdbdd67482e",
     "message": {
       "enc": false,
       "text": "Explain how steganography can be used to embed hidden verification data in image and audio cover objects."
@@ -29,9 +29,9 @@ Message: Explain how steganography can be used to embed hidden verification data
       "team": "P6-4",
       "tool": "INF2005-ACW1 stego"
     },
-    "nonce": "16b384a9445fa088af50cdd06729e0f1",
+    "nonce": "1c4f7397907b5047f17c3672115163d0",
     "signer": "4f5c22730b9b77f2",
-    "timestamp": "2026-09-27T17:16:51+00:00",
+    "timestamp": "2026-09-27T17:16:55+00:00",
     "v": 2
   }
 }
