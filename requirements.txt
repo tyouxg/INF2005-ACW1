@@ -1,5 +1,10 @@
-PySide6>=6.7
-Pillow>=10.0
-numpy>=1.26
-cryptography>=42.0
-pytest>=8.0
+# Exact versions, all tested with the full test suite on Python 3.12 and 3.14.
+# PySide6 6.10+ crashes on Python 3.12 when matplotlib's Qt backend is imported,
+# and 6.9 doesn't support 3.14, so each Python gets its own PySide6.
+PySide6==6.9.3; python_version < "3.14"
+PySide6==6.11.2; python_version >= "3.14"
+numpy==2.5.3
+Pillow==12.3.0
+cryptography==50.0.1
+matplotlib==3.11.2
+pytest==9.1.1
