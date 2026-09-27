@@ -3,7 +3,7 @@ import os
 import numpy as np
 import pytest
 
-from stego.core import media, protect, visual
+from stego.core import crypto, media, protect, replay, visual
 from tests.test_core import KEY, keys, png, wav  # noqa: F401  (fixtures)
 
 
@@ -72,6 +72,32 @@ def test_gui_smoke(qapp, png, tmp_path):
     s.msg.setPlainText("hello")
     assert "used" in s.capacity.text()
     win.close()
+
+
+def test_receiver_clear_replay_button(qapp, png, keys, tmp_path, monkeypatch):
+    monkeypatch.setattr(replay, "DEFAULT_STORE", tmp_path / "seen_nonces.json")
+    stego, _, _ = protect.protect(media.load_cover(png), png.name, "hi", 2, KEY, keys[0])
+    stego_path = tmp_path / "stego.png"
+    media.save_cover(stego, stego_path)
+    _, pub_path = crypto.save_keypair(keys[0], tmp_path / "k")
+
+    from stego.gui.receiver import ReceiverTab
+    r = ReceiverTab(tmp_path / "k")
+    r.file_pick.edit.setText(str(stego_path))
+    r.pub_pick.edit.setText(str(pub_path))
+    r.stego_key.setText(KEY)
+    assert r.replay_count.text().startswith("0 ")
+
+    r.run_verify()
+    assert r.verdict.text() == "AUTHENTIC"
+    r.run_verify()
+    assert r.verdict.text() == "REPLAY DETECTED"
+    assert r.replay_count.text().startswith("1 ")
+
+    r._clear_replay()
+    assert r.replay_count.text().startswith("0 ")
+    r.run_verify()
+    assert r.verdict.text() == "AUTHENTIC"
 
 
 def test_shrink_max_keeps_single_pixel():

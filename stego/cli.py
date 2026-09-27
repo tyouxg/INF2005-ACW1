@@ -4,6 +4,7 @@
     python -m stego.cli protect cover.png stego.png -k 2 --key "secret" --msg "hello"
     python -m stego.cli verify stego.png --key "secret"
     python -m stego.cli capacity cover.png -k 1 --msg-file long.txt
+    python -m stego.cli clear-replay
 """
 
 import argparse
@@ -11,7 +12,7 @@ import json
 import sys
 from pathlib import Path
 
-from .core import crypto, media, protect
+from .core import crypto, media, protect, replay
 
 KEYS_DIR = Path(__file__).resolve().parent.parent / "keys"
 
@@ -55,6 +56,12 @@ def cmd_verify(args):
     sys.exit(0 if res.verdict == protect.AUTHENTIC else 1)
 
 
+def cmd_clear_replay(args):
+    n = replay.count()
+    replay.clear()
+    print(f"Forgot {n} accepted payload(s). Verifying them again will say Authentic.")
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(prog="stego")
     sub = ap.add_subparsers(required=True)
@@ -88,6 +95,9 @@ def main(argv=None):
     p.add_argument("--msg-file")
     p.add_argument("--encrypt", action="store_true")
     p.set_defaults(func=cmd_capacity)
+
+    p = sub.add_parser("clear-replay", help="forget which payloads were already verified")
+    p.set_defaults(func=cmd_clear_replay)
 
     args = ap.parse_args(argv)
     args.func(args)

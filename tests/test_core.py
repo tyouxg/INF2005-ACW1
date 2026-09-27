@@ -7,8 +7,8 @@ from PIL import Image
 from stego import messages
 from stego.core import crypto, lsb, media
 from stego.core import replay
-from stego.core.protect import (AUTHENTIC, SIGNATURE_INVALID, TAMPERED, WRONG_START,
-                                CapacityError, capacity_bytes, protect, verify)
+from stego.core.protect import (AUTHENTIC, REPLAY_DETECTED, SIGNATURE_INVALID, TAMPERED,
+                                WRONG_START, CapacityError, capacity_bytes, protect, verify)
 
 KEY = "correct horse battery staple"
 
@@ -230,3 +230,25 @@ def test_replay_different_nonce_not_flagged(tmp_path):
     store = tmp_path / "seen_nonces.json"
     replay.record("abc123", path=store)
     assert replay.seen_before("xyz789", path=store) is False
+
+
+def test_replay_clear_forgets_everything(tmp_path):
+    store = tmp_path / "seen_nonces.json"
+    replay.record("abc123", path=store)
+    replay.record("xyz789", path=store)
+    assert replay.count(path=store) == 2
+    replay.clear(path=store)
+    assert replay.count(path=store) == 0
+    assert replay.seen_before("abc123", path=store) is False
+
+
+def test_replay_clear_on_fresh_checkout(tmp_path):
+    replay.clear(path=tmp_path / "seen_nonces.json")   # no store yet, mustn't crash
+
+
+def test_second_verify_is_replay_until_cleared(png, tmp_path, keys):
+    stego, _ = roundtrip(png, tmp_path, keys, 2, messages.SHORT)
+    assert verify(stego, KEY, keys[1]).verdict == AUTHENTIC
+    assert verify(stego, KEY, keys[1]).verdict == REPLAY_DETECTED
+    replay.clear()
+    assert verify(stego, KEY, keys[1]).verdict == AUTHENTIC

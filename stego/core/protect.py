@@ -193,7 +193,9 @@ def _verify(cover, passphrase, pub, start_override):
     if replay.seen_before(payload["nonce"]):
         return VerifyResult(REPLAY_DETECTED, (
             "Signature and hash are valid, but this exact payload has been verified "
-            "before. This file may be a replay of an earlier legitimate message."),
+            "before. This file may be a replay of an earlier legitimate message. If you "
+            "are only re-checking a file you already accepted, clear the replay history "
+            "and verify again."),
             payload, text, details)
     replay.record(payload["nonce"])
 

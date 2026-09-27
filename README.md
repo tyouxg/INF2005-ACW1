@@ -54,7 +54,12 @@ public and never reuse it for anything real.
    *Extract & verify*.
 
 Verdicts: **Authentic**, **Tampered**, **Signature Invalid**, **Payload Missing**,
-**Wrong Start Location**, **Cannot Verify**.
+**Wrong Start Location**, **Cannot Verify**, and our own **Replay Detected**.
+
+Replay detection remembers every accepted payload (`keys/seen_nonces.json`, not committed), so
+verifying the same file a second time on the same computer says **Replay Detected**. Before a demo,
+press **Clear replay history** in the Receiver tab (or run `python -m stego.cli clear-replay`) so
+files verified during rehearsal start fresh.
 
 ## M2 audio demo assets
 
