@@ -6,7 +6,7 @@ from pathlib import Path
 
 import numpy as np
 from PySide6.QtCore import QSettings, Qt, QUrl
-from PySide6.QtGui import QImage, QPixmap
+from PySide6.QtGui import QColor, QImage, QPainter, QPen, QPixmap
 from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
 from PySide6.QtWidgets import (QApplication, QComboBox, QFileDialog, QGroupBox, QHBoxLayout,
                                QLabel, QLineEdit, QPushButton, QSizePolicy, QVBoxLayout,
@@ -126,6 +126,28 @@ class MediaView(QGroupBox):
         self.play_btn.setVisible(on)
         self.stop_btn.setVisible(on)
 
+    def _waveform_pixmap(self, cover):
+        """Draw a small before/after WAV waveform without another dependency."""
+        width, height = 420, 150
+        pix = QPixmap(width, height)
+        pix.fill(QColor("#f5f7fa"))
+        painter = QPainter(pix)
+        try:
+            painter.setPen(QPen(QColor("#c4cbd4"), 1))
+            middle = height // 2
+            painter.drawLine(10, middle, width - 10, middle)
+            lows, highs = media.audio_waveform(cover, width - 20)
+            painter.setPen(QPen(QColor("#1565c0"), 1))
+            scale = (height - 24) / 2
+            for i, (low, high) in enumerate(zip(lows, highs, strict=True)):
+                x = 10 + round(i * (width - 20) / max(1, len(lows) - 1))
+                y_low = middle - round(max(-1.0, min(1.0, low)) * scale)
+                y_high = middle - round(max(-1.0, min(1.0, high)) * scale)
+                painter.drawLine(x, y_low, x, y_high)
+        finally:
+            painter.end()
+        return pix
+
     def show_file(self, path, cover=None):
         self.player.stop()
         # release the file handle, otherwise Windows won't let us overwrite it
@@ -135,17 +157,21 @@ class MediaView(QGroupBox):
         if cover.kind == "image":
             self._set_audio_controls(False)
             self.image.set_image(QPixmap(str(path)))
+            self.image.setToolTip("")
         else:
             self._set_audio_controls(True)
-            self.image.set_image(None, f"♫  {self.path.name}")
+            self.image.set_image(self._waveform_pixmap(cover))
+            self.image.setToolTip("Waveform: average amplitude across channels")
             self.player.setSource(QUrl.fromLocalFile(str(path)))
-        self.info.setText(f"{self.path.name}\n{cover.describe()}")
+        suffix = "\nWaveform: average amplitude across channels" if cover.kind == "audio" else ""
+        self.info.setText(f"{self.path.name}\n{cover.describe()}{suffix}")
 
     def clear(self):
         self.player.stop()
         self.player.setSource(QUrl())
         self.path = None
         self.image.set_image(None, "No file loaded")
+        self.image.setToolTip("")
         self.info.setText("")
         self._set_audio_controls(False)
 

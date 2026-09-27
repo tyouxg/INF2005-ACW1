@@ -19,3 +19,4 @@ keys/seen_nonces.json
 tests/evidence/*.tmp
 /documents
 .pytest_cache/
+.pytest-tmp/
