@@ -33,6 +33,21 @@ def changed_pixels(cover: Cover, stego: Cover) -> int:
     return int(np.any(image_rgb(cover) != image_rgb(stego), axis=2).sum())
 
 
+def frame_cover(cover: Cover, i: int) -> Cover:
+    """One frame of a video as an image Cover, so all the image views work on it."""
+    p = cover.params
+    size = p["width"] * p["height"] * 3
+    return Cover("image", cover.data[i * size:(i + 1) * size], 1,
+                 {"width": p["width"], "height": p["height"]})
+
+
+def first_changed_frame(cover: Cover, stego: Cover) -> int:
+    """The frame the key-derived start landed in (where the first change is)."""
+    changed = np.flatnonzero(cover.data != stego.data)
+    size = cover.params["width"] * cover.params["height"] * 3
+    return int(changed[0] // size) if len(changed) else 0
+
+
 def shrink_max(arr: np.ndarray, f: int) -> np.ndarray:
     """Shrink by f keeping the brightest pixel of each f x f block, so a single
     changed pixel can't disappear when the image is scaled down for display."""

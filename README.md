@@ -86,26 +86,48 @@ The GUI WAV previews include a waveform, allowing a before/after comparison.
 
 | Part | How |
 |---|---|
-| Carrier | Image: every RGB byte. Audio: the low byte of each PCM sample only |
-| Start location | scrypt(stego key) → HKDF → offset mod carrier length. Not fixed, differs per file |
+| Carrier | Image: every RGB byte. Audio: the low byte of each PCM sample only. Video: every RGB byte of every frame |
+| Start location | scrypt(stego key) → HKDF → offset mod carrier length. Not fixed, differs per file (for video it picks the frame) |
 | Header | 8 bytes (magic, version, k, length), 1 LSB, XOR-masked with a key-derived mask so it can't be found by scanning |
 | Payload | JSON: media ID, timestamp, media hash, nonce, LSB count, signer fingerprint, team metadata, message |
 | Signature | Ed25519 over the exact payload bytes, 64-byte signature appended |
+| Body mask (format v2) | Payload + signature XOR-masked with a key-derived SHAKE-256 stream, so the LSBs look like noise |
 | Media hash | SHA-256 of the file with only the embedding bits cleared, so any other change is caught |
 | Confidentiality | Optional AES-GCM encryption of the message, key derived from the stego key |
+| Robust mode | Optional: every bit stored x3/x5/x7 times, read back by majority vote |
+
+## Optional challenges
+
+- **Video covers.** MKV/AVI saved as FFV1 (lossless, via the ffmpeg that `imageio-ffmpeg` ships).
+  MP4/MOV are accepted as covers but never written, because H.264 is lossy. The GUI shows frames
+  with a slider, and the difference view jumps to the frame the key picked.
+- **Robust embedding.** *Robustness* in the Sender tab (`--robust 5` on the CLI). The payload survives
+  a flipped bit, 1% LSB noise or a scratch over it, and the verdict still reports the change as
+  Tampered. The Attack Lab's *Payload recovered* column shows the difference.
+- **Steganalysis.** The *Steganalysis* tab (`python -m stego.cli scan <file>`) looks for hidden data
+  with no key at all: the textbook chi-square attack, and a structure scan that found and read our
+  own version 1 payloads. That's why format version 2 masks the whole body. Version 1 files still
+  verify.
+- **Attack simulation.** The *Attack Lab* tab runs 11 attacks on a genuine file.
 
 ## Limitations
 
-- Lossless formats only. JPEG/MP3 re-encoding destroys LSBs, and the tool refuses to save stego files as JPEG.
+- Lossless formats only. JPEG/MP3/H.264 re-encoding destroys LSBs, even in robust mode, and the tool
+  refuses to save stego files in lossy formats.
 - Anyone without the stego key can still destroy the payload by overwriting LSBs, but can't read or
-  forge it. Higher LSB counts are easier to detect by steganalysis and more visible or audible.
+  forge it. Higher LSB counts are easier to detect and more visible or audible.
+- Files made with format version 1 (before the body mask) can be found and read by the structure scan.
+- The chi-square attack can't tell our covers from stego files, since real photos and audio already
+  have noisy low bits. A stronger statistical test might still flag big payloads.
+- Robust mode divides capacity by the repetition factor. Video keeps no audio track and every frame is
+  held in memory.
 - A wrong stego key and a file with no payload both show *Wrong Start Location*, because without the key
   the two cases look the same.
 
 ## Folder structure
 
 ```
-stego/core/   media, LSB, crypto, payload, protect/verify (no GUI code)
+stego/core/   media, LSB, crypto, payload, protect/verify, robust, attacks, steganalysis (no GUI code)
 stego/gui/    PySide6 app
 stego/cli.py  command line
 tests/        pytest suite

@@ -4,12 +4,17 @@ import json
 import os
 import struct
 import uuid
+from dataclasses import dataclass
 from datetime import datetime, timezone
 
 MAGIC = b"SG"
-VERSION = 1
-HEADER_FMT = ">2sBBI"          # magic, version, k, body length
+# Version 2 XOR-masks the whole payload body, so the LSBs no longer spell out
+# readable JSON (see core/steganalysis.py). Version 1 files are still readable.
+VERSION = 2
+SUPPORTED_VERSIONS = (1, 2)
+HEADER_FMT = ">2sBBI"          # magic, version, k (+ repetition code on top), body length
 HEADER_LEN = struct.calcsize(HEADER_FMT)
+MAX_REPS = 15
 TEAM_META = {"team": "P6-4", "tool": "INF2005-ACW1 stego"}
 
 
@@ -40,13 +45,26 @@ def decode_payload(raw: bytes) -> dict:
     return json.loads(raw.decode("utf-8"))
 
 
-def pack_header(k: int, body_len: int) -> bytes:
-    return struct.pack(HEADER_FMT, MAGIC, VERSION, k, body_len)
+@dataclass
+class Header:
+    version: int
+    k: int
+    reps: int          # 1 = normal, 3/5/7... = robust mode repetition
+    body_len: int
 
 
-def unpack_header(raw: bytes):
-    """Returns (k, body_len) or None if this doesn't look like our header."""
-    magic, version, k, body_len = struct.unpack(HEADER_FMT, raw)
-    if magic != MAGIC or version != VERSION or not 1 <= k <= 8:
+def pack_header(k: int, body_len: int, reps: int = 1, version: int = VERSION) -> bytes:
+    # k only needs 4 bits (1-8), so the top 4 bits of that byte carry the
+    # repetition count as (reps - 1) / 2. Old files have 0 there, i.e. reps = 1.
+    return struct.pack(HEADER_FMT, MAGIC, version, k | ((reps - 1) // 2) << 4, body_len)
+
+
+def unpack_header(raw: bytes) -> Header | None:
+    """None if this doesn't look like our header."""
+    magic, version, kbyte, body_len = struct.unpack(HEADER_FMT, raw)
+    k, reps = kbyte & 0x0F, (kbyte >> 4) * 2 + 1
+    if magic != MAGIC or version not in SUPPORTED_VERSIONS or not 1 <= k <= 8:
         return None
-    return k, body_len
+    if version == 1 and reps != 1:
+        return None
+    return Header(version, k, reps, body_len)

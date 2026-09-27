@@ -8,6 +8,7 @@ from ..core import crypto
 from .attack_lab import AttackLabTab
 from .receiver import ReceiverTab
 from .sender import SenderTab
+from .steganalysis_tab import SteganalysisTab
 
 KEYS_DIR = Path(__file__).resolve().parents[2] / "keys"
 
@@ -54,13 +55,16 @@ class MainWindow(QMainWindow):
         self.sender = SenderTab(KEYS_DIR)
         self.receiver = ReceiverTab(KEYS_DIR)
         self.attack_lab = AttackLabTab(KEYS_DIR)
+        self.steganalysis = SteganalysisTab()
         # saves re-picking the file when A and B are demoed on the same laptop
         self.sender.saved.connect(self.receiver.file_pick.edit.setText)
         self.sender.saved.connect(self.attack_lab.file_pick.edit.setText)
+        self.sender.saved.connect(self.steganalysis.file_pick.edit.setText)
         tabs = QTabWidget()
         tabs.addTab(self.sender, "Sender (A)")
         tabs.addTab(self.receiver, "Receiver (B)")
         tabs.addTab(self.attack_lab, "Attack Lab")
+        tabs.addTab(self.steganalysis, "Steganalysis")
         tabs.addTab(KeysTab(), "Keys")
         # a key pair made in the Keys tab should enable the buttons straight away
         tabs.currentChanged.connect(self.sender.refresh)

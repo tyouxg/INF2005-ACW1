@@ -7,4 +7,5 @@ numpy==2.5.3
 Pillow==12.3.0
 cryptography==50.0.1
 matplotlib==3.11.2
+imageio-ffmpeg==0.6.0
 pytest==9.1.1

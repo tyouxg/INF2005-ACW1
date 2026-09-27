@@ -15,7 +15,7 @@ OK_COLOUR, BAD_COLOUR = "#1b7f3b", "#b3261e"
 class AttackLabTab(QWidget):
     def __init__(self, keys_dir: Path):
         super().__init__()
-        self.file_pick = FilePicker("Choose stego file", "Stego files (*.png *.bmp *.wav)")
+        self.file_pick = FilePicker("Choose stego file", "Stego files (*.png *.bmp *.wav *.mkv *.avi)")
         self.stego_key = QLineEdit()
         self.stego_key.setEchoMode(QLineEdit.Password)
         self.stego_key.setPlaceholderText("Same stego key the sender used")
@@ -29,8 +29,11 @@ class AttackLabTab(QWidget):
         form.addRow("Public key", self.pub_pick)
         form.addRow("", run)
 
-        self.table = QTableWidget(0, 4)
-        self.table.setHorizontalHeaderLabels(["Attack", "What the attacker did", "Expected", "Got"])
+        self.table = QTableWidget(0, 5)
+        # "Payload recovered" is where robust mode shows off: the verdict still
+        # flags the change, but the signed message came out intact
+        self.table.setHorizontalHeaderLabels(["Attack", "What the attacker did", "Expected", "Got",
+                                              "Payload recovered"])
         self.table.horizontalHeader().setStretchLastSection(True)
         self.table.setEditTriggers(QTableWidget.NoEditTriggers)
         self.summary = QLabel("Hover over a verdict to see why verify() gave it.")
@@ -53,7 +56,7 @@ class AttackLabTab(QWidget):
 
         self.table.setRowCount(len(results))
         for row, r in enumerate(results):
-            cells = [r.name, r.what, " / ".join(r.expected), r.got]
+            cells = [r.name, r.what, " / ".join(r.expected), r.got, "yes" if r.recovered else "no"]
             for col, text in enumerate(cells):
                 self.table.setItem(row, col, QTableWidgetItem(text))
             got = self.table.item(row, 3)
@@ -62,4 +65,5 @@ class AttackLabTab(QWidget):
         self.table.resizeColumnsToContents()
 
         caught = sum(r.passed for r in results)
-        self.summary.setText(f"{caught} of {len(results)} attacks detected with the expected verdict.")
+        self.summary.setText(f"{caught} of {len(results)} attacks detected with the expected verdict. "
+                             f"The signed payload survived {sum(r.recovered for r in results)} of them.")
