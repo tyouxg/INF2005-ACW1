@@ -10,7 +10,7 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
-from . import crypto, lsb
+from . import crypto, lsb, replay
 from .media import Cover
 from .payload import (HEADER_LEN, build_payload, decode_payload, encode_payload,
                       pack_header, unpack_header)
@@ -23,6 +23,7 @@ SIGNATURE_INVALID = "Signature Invalid"
 PAYLOAD_MISSING = "Payload Missing"
 WRONG_START = "Wrong Start Location"
 CANNOT_VERIFY = "Cannot Verify"
+REPLAY_DETECTED = "Replay Detected"
 
 
 class CapacityError(Exception):
@@ -64,6 +65,22 @@ def media_hash(cover: Cover, start: int, k: int, body_len: int) -> str:
 def capacity_bytes(cover: Cover, k: int) -> int:
     """How many body bytes (payload + signature) fit at this LSB setting."""
     return max(0, (len(cover.carrier) - HEADER_UNITS) * k // 8)
+
+
+def body_size(cover: Cover, filename: str, text: str, k: int,
+              encrypt_message: bool = False) -> int:
+    """Exact body length protect() will produce, without needing the real keys.
+
+    Apart from the text and filename, every payload field has a fixed width (hex
+    digests, uuid, timestamp, AES salt/nonce), so a build with dummy values
+    comes out the same size.
+    """
+    if encrypt_message:
+        message = {"enc": True, **crypto.encrypt(bytes(32), text.encode("utf-8"))}
+    else:
+        message = {"enc": False, "text": text}
+    payload = build_payload(cover.kind, filename, "0" * 64, k, message, "0" * 16)
+    return len(encode_payload(payload)) + crypto.SIG_LEN
 
 
 def protect(cover: Cover, filename: str, text: str, k: int, passphrase: str,
@@ -171,6 +188,14 @@ def _verify(cover, passphrase, pub, start_override):
         return VerifyResult(TAMPERED, (
             "Signature is valid, but the media hash doesn't match. The file was "
             "modified after it was protected."), payload, text, details)
+
+    # Replay check from M3, see core/replay.py
+    if replay.seen_before(payload["nonce"]):
+        return VerifyResult(REPLAY_DETECTED, (
+            "Signature and hash are valid, but this exact payload has been verified "
+            "before. This file may be a replay of an earlier legitimate message."),
+            payload, text, details)
+    replay.record(payload["nonce"])
 
     return VerifyResult(AUTHENTIC, "Signature valid and media hash matches.",
                         payload, text, details)

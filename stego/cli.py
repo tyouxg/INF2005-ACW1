@@ -3,6 +3,7 @@
     python -m stego.cli keygen
     python -m stego.cli protect cover.png stego.png -k 2 --key "secret" --msg "hello"
     python -m stego.cli verify stego.png --key "secret"
+    python -m stego.cli capacity cover.png -k 1 --msg-file long.txt
 """
 
 import argparse
@@ -31,6 +32,16 @@ def cmd_protect(args):
         sys.exit(f"Capacity check failed: {e}")
     media.save_cover(stego, args.out)
     print(json.dumps({"saved": args.out, **info, "payload": payload}, indent=2))
+
+
+def cmd_capacity(args):
+    text = Path(args.msg_file).read_text(encoding="utf-8") if args.msg_file else args.msg
+    cover = media.load_cover(args.cover)
+    need = protect.body_size(cover, Path(args.cover).name, text, args.k, args.encrypt)
+    cap = protect.capacity_bytes(cover, args.k)
+    print(f"{cover.describe()}\nPayload {need:,} bytes, capacity {cap:,} bytes at {args.k} LSB(s)")
+    print("Fits" if need <= cap else "Does NOT fit")
+    sys.exit(0 if need <= cap else 1)
 
 
 def cmd_verify(args):
@@ -69,6 +80,14 @@ def main(argv=None):
     p.add_argument("--pub", default=KEYS_DIR / "public_key.pem")
     p.add_argument("--start", type=int, help="force a start offset (wrong-start test)")
     p.set_defaults(func=cmd_verify)
+
+    p = sub.add_parser("capacity", help="check whether a message fits, without embedding")
+    p.add_argument("cover")
+    p.add_argument("-k", type=int, default=1, help="LSBs to use (1-8)")
+    p.add_argument("--msg", default="")
+    p.add_argument("--msg-file")
+    p.add_argument("--encrypt", action="store_true")
+    p.set_defaults(func=cmd_capacity)
 
     args = ap.parse_args(argv)
     args.func(args)
