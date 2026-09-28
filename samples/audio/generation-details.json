@@ -8,6 +8,7 @@
   "duration_seconds": 8,
   "lsbs": 2,
   "stego_key_for_coursework_demo_only": "m2-audio-demo-key",
+  "public_key_for_verification": "keys/public_key.pem",
   "payload_start_carrier_index": 595863,
   "embedded_carrier_units": 4464,
   "tampered_section_start_seconds": 0.0,
