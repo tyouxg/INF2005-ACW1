@@ -7,6 +7,7 @@
     python -m stego.cli clear-replay
     python -m stego.cli protect clip.mkv out.mkv -k 1 --key "secret" --msg "hi" --robust 5
     python -m stego.cli scan suspicious.png
+    python -m stego.cli shrink-video phone.mp4 small.mkv --seconds 5 --width 640
 """
 
 import argparse
@@ -69,6 +70,11 @@ def cmd_scan(args):
     sys.exit(1)
 
 
+def cmd_shrink_video(args):
+    out = media.shrink_video(args.src, args.out, args.seconds, args.width)
+    print(f"Wrote {out}: {media.load_cover(out).describe()}")
+
+
 def cmd_clear_replay(args):
     n = replay.count()
     replay.clear()
@@ -113,6 +119,13 @@ def main(argv=None):
     p = sub.add_parser("scan", help="look for hidden data without any key (steganalysis)")
     p.add_argument("file")
     p.set_defaults(func=cmd_scan)
+
+    p = sub.add_parser("shrink-video", help="make a short, small, lossless copy of a video")
+    p.add_argument("src")
+    p.add_argument("out", help="should end in .mkv")
+    p.add_argument("--seconds", type=float, default=5)
+    p.add_argument("--width", type=int, default=640)
+    p.set_defaults(func=cmd_shrink_video)
 
     p = sub.add_parser("clear-replay", help="forget which payloads were already verified")
     p.set_defaults(func=cmd_clear_replay)

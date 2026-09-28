@@ -112,6 +112,28 @@ def test_video_attacks_all_caught(mkv, keys):
         assert r.passed, f"{r.name}: expected {r.expected}, got {r.got}"
 
 
+def test_big_video_fails_fast_with_numbers(mkv, monkeypatch):
+    monkeypatch.setattr(media, "MAX_VIDEO_BYTES", 1000)
+    with pytest.raises(media.VideoTooLarge, match="raw pixels"):
+        media.load_cover(mkv)
+
+
+def test_shrink_video_makes_a_small_lossless_cover(tmp_path):
+    # a 2 s 200x150 H.264 clip, like something off a phone but tiny
+    import imageio_ffmpeg
+    src = tmp_path / "phone.mp4"
+    w = imageio_ffmpeg.write_frames(str(src), (200, 150), fps=10, codec="libx264",
+                                    pix_fmt_in="rgb24", macro_block_size=1)
+    w.send(None)
+    rng = np.random.default_rng(6)
+    for _ in range(20):
+        w.send(rng.integers(0, 256, (150, 200, 3), dtype=np.uint8).tobytes())
+    w.close()
+    small = media.shrink_video(src, tmp_path / "small.mkv", seconds=1, width=100)
+    cover = media.load_cover(small)
+    assert (cover.params["width"], cover.params["frames"]) == (100, 10)
+
+
 def test_video_lossy_output_refused(mkv):
     with pytest.raises(media.UnsupportedMedia):
         media.save_cover(media.load_cover(mkv), "out.mp4")

@@ -16,7 +16,7 @@ class SteganalysisTab(QWidget):
     def __init__(self):
         super().__init__()
         self.file_pick = FilePicker("Choose any image, WAV or video",
-                                    "Media (*.png *.bmp *.wav *.mkv *.avi *.mp4 *.mov)")
+                                    "Media (*.png *.bmp *.jpg *.jpeg *.wav *.mkv *.avi *.mp4 *.mov)")
         run = QPushButton("Scan for hidden data (no key needed)")
         run.clicked.connect(self.run)
         form = QFormLayout()

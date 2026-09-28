@@ -5,7 +5,7 @@ import pytest
 from PIL import Image
 
 from stego import messages
-from stego.core import crypto, lsb, media
+from stego.core import crypto, imagetools, lsb, media
 from stego.core import replay
 from stego.core.protect import (AUTHENTIC, REPLAY_DETECTED, SIGNATURE_INVALID, TAMPERED,
                                 WRONG_START, CapacityError, capacity_bytes, protect, verify)
@@ -252,3 +252,33 @@ def test_second_verify_is_replay_until_cleared(png, tmp_path, keys):
     assert verify(stego, KEY, keys[1]).verdict == REPLAY_DETECTED
     replay.clear()
     assert verify(stego, KEY, keys[1]).verdict == AUTHENTIC
+
+
+def test_psnr_identical_is_infinite(png):
+    cover = media.load_cover(png)
+    assert imagetools.psnr(cover, cover.copy()) == float("inf")
+    assert imagetools.compare(cover, cover.copy())["changed_pixels"] == 0
+
+
+def test_psnr_drops_as_k_rises(png, tmp_path, keys):
+    cover = media.load_cover(png)
+    scores = [imagetools.psnr(cover, roundtrip(png, tmp_path, keys, k, messages.LONG)[0])
+              for k in (1, 4, 8)]
+    assert scores[0] > scores[1] > scores[2]
+
+
+def test_jpeg_cover_saved_as_png_is_authentic(png, tmp_path, keys):
+    jpg = tmp_path / "cover.jpg"
+    Image.open(png).save(jpg, quality=90)
+    stego, _, _ = protect(media.load_cover(jpg), jpg.name, messages.SHORT, 2, KEY, keys[0])
+    out = tmp_path / "cover_stego.png"
+    media.save_cover(stego, out)
+    assert verify(media.load_cover(out), KEY, keys[1]).verdict == AUTHENTIC
+
+
+def test_jpeg_recompression_destroys_payload(png, tmp_path, keys):
+    stego, _ = roundtrip(png, tmp_path, keys, 2, messages.SHORT)
+    recompressed = tmp_path / "recompressed.jpg"
+    p = stego.params
+    Image.fromarray(stego.data.reshape(p["height"], p["width"], 3)).save(recompressed, quality=95)
+    assert verify(media.load_cover(recompressed), KEY, keys[1]).verdict != AUTHENTIC

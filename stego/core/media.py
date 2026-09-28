@@ -7,7 +7,8 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 
-IMAGE_EXTS = {".png", ".bmp"}
+IMAGE_EXTS = {".png", ".bmp"}           # lossless, safe for stego output
+JPEG_EXTS = {".jpg", ".jpeg"}           # accepted as a cover only, never as output
 AUDIO_EXTS = {".wav"}
 PCM_SAMPLE_WIDTHS = {1, 2, 3, 4}
 # Stego video is always written as FFV1, a lossless codec, in MKV or AVI. MP4/MOV
@@ -19,6 +20,11 @@ MAX_VIDEO_BYTES = 400 * 1024 * 1024      # every frame is held in memory
 
 
 class UnsupportedMedia(Exception):
+    pass
+
+
+class VideoTooLarge(UnsupportedMedia):
+    # separate type so the GUI can offer to make a smaller copy
     pass
 
 
@@ -54,13 +60,13 @@ class Cover:
 
 def media_kind(path) -> str:
     ext = Path(path).suffix.lower()
-    if ext in IMAGE_EXTS:
+    if ext in IMAGE_EXTS or ext in JPEG_EXTS:
         return "image"
     if ext in AUDIO_EXTS:
         return "audio"
     if ext in VIDEO_IN_EXTS:
         return "video"
-    raise UnsupportedMedia(f"Unsupported file type '{ext}'. Use PNG/BMP for images, WAV for "
+    raise UnsupportedMedia(f"Unsupported file type '{ext}'. Use PNG/BMP/JPEG for images, WAV for "
                            "audio, or MKV/AVI (FFV1) for video.")
 
 
@@ -83,6 +89,9 @@ def save_cover(cover: Cover, path) -> None:
 
 
 def load_image(path) -> Cover:
+    # JPEG covers are decoded to plain pixels here, so embedding works the same.
+    # The stego result must then be saved as PNG/BMP: re-encoding as JPEG would
+    # requantise the pixels and wipe the LSBs.
     # Alpha is dropped on purpose: fully transparent pixels can get their RGB
     # zeroed by some editors, which would wipe the payload.
     img = Image.open(path).convert("RGB")
@@ -149,18 +158,52 @@ def load_video(path) -> Cover:
     reader = imageio_ffmpeg.read_frames(str(path), pix_fmt="rgb24")
     meta = next(reader)
     w, h = meta["size"]
-    frames, total = [], 0
+    fps = float(meta["fps"])
+    frame_bytes = w * h * 3
+
+    # Raw frames are huge next to MP4: one 1080p frame is ~6 MB, so a second of
+    # 30 fps video is ~187 MB. Check the estimate before decoding anything.
+    seconds = meta.get("duration") or 0
+    estimate = int(seconds * fps) * frame_bytes
+    if estimate > MAX_VIDEO_BYTES:
+        reader.close()
+        raise VideoTooLarge(
+            f"This video is {w}x{h}, about {seconds:.1f} s at {fps:g} fps, which is roughly "
+            f"{estimate / 2**20:,.0f} MB of raw pixels. The limit is {MAX_VIDEO_BYTES / 2**20:.0f} MB, "
+            f"because every frame is held in memory. Use a short, small clip "
+            f"(e.g. 5 s at 640 px wide, see shrink_video / 'stego.cli shrink-video').")
+
+    buf = bytearray()          # grows in place, so we never hold two full copies
     for raw in reader:
-        total += len(raw)
-        if total > MAX_VIDEO_BYTES:
+        buf += raw
+        if len(buf) > MAX_VIDEO_BYTES:       # the duration in the file can be missing or wrong
             reader.close()
-            raise UnsupportedMedia("Video too large to hold in memory, use a shorter or smaller clip.")
-        frames.append(np.frombuffer(raw, dtype=np.uint8))
-    if not frames:
+            raise VideoTooLarge(f"This video is more than {MAX_VIDEO_BYTES / 2**20:.0f} MB of raw "
+                                "pixels. Use a shorter or smaller clip.")
+    if not buf:
         raise UnsupportedMedia("No video frames found.")
     # fps goes into the media hash, so round it the same way every time it's read
-    params = {"width": w, "height": h, "frames": len(frames), "fps": round(float(meta["fps"]), 3)}
-    return Cover("video", np.concatenate(frames), 1, params)
+    params = {"width": w, "height": h, "frames": len(buf) // frame_bytes, "fps": round(fps, 3)}
+    return Cover("video", np.frombuffer(buf, dtype=np.uint8), 1, params)
+
+
+def shrink_video(src, dst, seconds: float = 5, width: int = 640):
+    """Make a short, small, lossless copy of any video to use as a cover.
+
+    Uses the ffmpeg that imageio-ffmpeg ships: keeps the first `seconds`, scales
+    down to at most `width` pixels wide, drops the audio, writes FFV1.
+    """
+    import subprocess
+
+    import imageio_ffmpeg
+
+    cmd = [imageio_ffmpeg.get_ffmpeg_exe(), "-y", "-loglevel", "error", "-i", str(src),
+           "-t", str(seconds), "-vf", f"scale='min({width},iw)':-2", "-an",
+           "-c:v", "ffv1", "-pix_fmt", "bgr0", str(dst)]
+    result = subprocess.run(cmd, capture_output=True, text=True, check=False)
+    if result.returncode != 0:
+        raise UnsupportedMedia(f"ffmpeg couldn't shrink the video: {result.stderr.strip()[-300:]}")
+    return Path(dst)
 
 
 def save_video(cover: Cover, path) -> None:

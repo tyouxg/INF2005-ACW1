@@ -12,8 +12,8 @@ from .. import messages
 from ..core import crypto, media, protect
 from .widgets import DiffView, FilePicker, MediaView, busy, last_dir, remember_dir
 
-MEDIA_FILTER = ("Cover files (*.png *.bmp *.wav *.mkv *.avi *.mp4 *.mov);;Images (*.png *.bmp);;"
-                "Audio (*.wav);;Video (*.mkv *.avi *.mp4 *.mov)")
+MEDIA_FILTER = ("Cover files (*.png *.bmp *.jpg *.jpeg *.wav *.mkv *.avi *.mp4 *.mov);;"
+                "Images (*.png *.bmp *.jpg *.jpeg);;Audio (*.wav);;Video (*.mkv *.avi *.mp4 *.mov)")
 # Robust mode: every bit stored this many times, read back by majority vote
 ROBUST_CHOICES = {"Off": 1, "x3 repetition": 3, "x5 repetition": 5, "x7 repetition": 7}
 OK_COLOUR, BAD_COLOUR = "#1b7f3b", "#b3261e"
@@ -31,6 +31,9 @@ class SenderTab(QWidget):
 
         self.preset = QComboBox()
         self.preset.addItems(["(type your own)", *messages.PRESETS])
+        # keep the user's own draft so flicking through presets doesn't lose it
+        self._own_text = ""
+        self._preset_name = self.preset.currentText()
         self.preset.currentTextChanged.connect(self._apply_preset)
         load_txt = QPushButton("Load .txt…")
         load_txt.clicked.connect(self._load_text_file)
@@ -114,9 +117,14 @@ class SenderTab(QWidget):
         self.hint.setText("Needs " + ", ".join(missing) if missing else "")
 
     def _apply_preset(self, name):
+        if self._preset_name not in messages.PRESETS:
+            self._own_text = self.msg.toPlainText()
+        self._preset_name = name
         if name in messages.PRESETS:
             self.msg.setPlainText(messages.PRESETS[name])
             self.encrypt.setChecked(name == "Custom")
+        else:
+            self.msg.setPlainText(self._own_text)
 
     def _load_text_file(self):
         path, _ = QFileDialog.getOpenFileName(self, "Message file", last_dir(), "Text (*.txt)")
@@ -140,6 +148,27 @@ class SenderTab(QWidget):
             try:
                 self.cover = media.load_cover(path)
                 self.cover_view.show_file(path, self.cover)
+            except media.VideoTooLarge as e:
+                # a phone video is gigabytes of raw pixels, so offer a short small copy
+                ask = QMessageBox.question(
+                    self, "Video too big",
+                    f"{e}\n\nMake a 5-second, 640-pixel-wide lossless copy next to it and use that "
+                    "as the cover instead?")
+                if ask == QMessageBox.Yes:
+                    small = Path(path).with_name(f"{Path(path).stem}_5s_640.mkv")
+                    try:
+                        with busy():
+                            media.shrink_video(path, small)
+                    except Exception as err:
+                        QMessageBox.warning(self, "Couldn't shrink the video", str(err))
+                    else:
+                        self.cover_pick.edit.setText(str(small))   # loads the small copy
+                        return
+                self.cover_view.clear()
+                self.capacity.setStyleSheet(f"color: {BAD_COLOUR};")
+                self.capacity.setText(f"Can't load {Path(path).name}: {e}")
+                self.refresh()
+                return
             except Exception as e:
                 self.cover_view.clear()
                 self.capacity.setStyleSheet(f"color: {BAD_COLOUR};")

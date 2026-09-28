@@ -25,7 +25,7 @@ class ReceiverTab(QWidget):
     def __init__(self, keys_dir: Path):
         super().__init__()
         self.file_pick = FilePicker("Choose stego file",
-                                    "Stego files (*.png *.bmp *.wav *.mkv *.avi)")
+                                    "Stego files (*.png *.bmp *.jpg *.jpeg *.wav *.mkv *.avi)")
         self.file_pick.edit.textChanged.connect(self._preview)
         self.stego_key = QLineEdit()
         self.stego_key.setEchoMode(QLineEdit.Password)

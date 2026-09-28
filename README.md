@@ -100,7 +100,9 @@ The GUI WAV previews include a waveform, allowing a before/after comparison.
 
 - **Video covers.** MKV/AVI saved as FFV1 (lossless, via the ffmpeg that `imageio-ffmpeg` ships).
   MP4/MOV are accepted as covers but never written, because H.264 is lossy. The GUI shows frames
-  with a slider, and the difference view jumps to the frame the key picked.
+  with a slider, and the difference view jumps to the frame the key picked. Every frame is held in
+  memory as raw pixels (1080p is ~187 MB per second), so the limit is 400 MB: for a phone video the
+  Sender offers to make a 5 s, 640 px wide lossless copy (`python -m stego.cli shrink-video in.mp4 out.mkv`).
 - **Robust embedding.** *Robustness* in the Sender tab (`--robust 5` on the CLI). The payload survives
   a flipped bit, 1% LSB noise or a scratch over it, and the verdict still reports the change as
   Tampered. The Attack Lab's *Payload recovered* column shows the difference.

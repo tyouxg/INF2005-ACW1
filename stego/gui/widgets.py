@@ -14,7 +14,7 @@ from PySide6.QtWidgets import (QApplication, QComboBox, QFileDialog, QGroupBox, 
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 
-from ..core import media, visual
+from ..core import imagetools, media, visual
 
 
 def _settings() -> QSettings:
@@ -287,10 +287,10 @@ class DiffView(QGroupBox):
             self.image.setVisible(True)
             if mode == 0:
                 arr = visual.difference(c, s)
-                n = visual.changed_pixels(c, s)
-                total = c.params["width"] * c.params["height"]
-                self.info.setText(f"{n:,} of {total:,} pixels changed ({100 * n / total:.2f}%). "
-                                  "Black = unchanged.")
+                q = imagetools.compare(c, s)
+                self.info.setText(f"{q['changed_pixels']:,} of {q['total_pixels']:,} pixels changed "
+                                  f"({q['percent_changed']:.2f}%). PSNR {q['psnr_db']:.1f} dB, "
+                                  f"MSE {q['mse']:.4f}. Black = unchanged.")
             else:
                 arr = visual.lsb_plane(s if mode == 1 else c)
                 self.info.setText("Bit 0 of every RGB byte. The payload looks like random noise. "
