@@ -12,14 +12,14 @@ $ python -m stego.cli protect tests/evidence/files/image_cover.png tests/evidenc
   "percent_used": 0.3290689410092395,
   "payload": {
     "v": 2,
-    "media_id": "c2733eed30a5",
+    "media_id": "fa6457514b24",
     "kind": "image",
     "file": "image_cover.png",
-    "timestamp": "2026-09-28T08:15:50+00:00",
+    "timestamp": "2026-09-28T11:42:57+00:00",
     "media_hash": "0fad603da223c9135e1e56798b4b9feb2df1ff02fe282a0d0f917a678e37a962",
-    "nonce": "b6b5f70059198ac190f02bd1b2e7a9d9",
+    "nonce": "7970688ba60f64bd97d3d5ef86bbe7aa",
     "lsb": 2,
-    "signer": "37c9d9d60bc15447",
+    "signer": "8916b3b571ac1ecf",
     "meta": {
       "team": "P6-4",
       "tool": "INF2005-ACW1 stego"
