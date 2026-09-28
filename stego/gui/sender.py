@@ -12,7 +12,8 @@ from .. import messages
 from ..core import crypto, media, protect
 from .widgets import DiffView, FilePicker, MediaView, busy, last_dir, remember_dir
 
-MEDIA_FILTER = "Cover files (*.png *.bmp *.wav);;Images (*.png *.bmp);;Audio (*.wav)"
+MEDIA_FILTER = ("Cover files (*.png *.bmp *.jpg *.jpeg *.wav);;"
+                "Images (*.png *.bmp *.jpg *.jpeg);;Audio (*.wav)")
 OK_COLOUR, BAD_COLOUR = "#1b7f3b", "#b3261e"
 
 
@@ -28,6 +29,9 @@ class SenderTab(QWidget):
 
         self.preset = QComboBox()
         self.preset.addItems(["(type your own)", *messages.PRESETS])
+        # keep the user's own draft so flicking through presets doesn't lose it
+        self._own_text = ""
+        self._preset_name = self.preset.currentText()
         self.preset.currentTextChanged.connect(self._apply_preset)
         load_txt = QPushButton("Load .txt…")
         load_txt.clicked.connect(self._load_text_file)
@@ -105,9 +109,14 @@ class SenderTab(QWidget):
         self.hint.setText("Needs " + ", ".join(missing) if missing else "")
 
     def _apply_preset(self, name):
+        if self._preset_name not in messages.PRESETS:
+            self._own_text = self.msg.toPlainText()
+        self._preset_name = name
         if name in messages.PRESETS:
             self.msg.setPlainText(messages.PRESETS[name])
             self.encrypt.setChecked(name == "Custom")
+        else:
+            self.msg.setPlainText(self._own_text)
 
     def _load_text_file(self):
         path, _ = QFileDialog.getOpenFileName(self, "Message file", last_dir(), "Text (*.txt)")
