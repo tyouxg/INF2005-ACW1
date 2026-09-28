@@ -3,8 +3,8 @@ r"""Generate reproducible M2 WAV demo assets without storing a private key.
 Run from the repository root with:
     .venv\Scripts\python tools\generate_audio_samples.py
 
-The generated public key and passphrase are for this coursework demonstration
-only. Do not reuse either in a real deployment.
+The script uses the project's existing keys/private_key.pem to sign the sample
+files. It never copies or writes a private key.
 """
 
 import json
@@ -13,7 +13,6 @@ import wave
 from pathlib import Path
 
 import numpy as np
-from cryptography.hazmat.primitives import serialization
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -22,6 +21,7 @@ from stego import messages
 from stego.core import crypto, media, protect
 
 OUTPUT = ROOT / "samples" / "audio"
+KEYS = ROOT / "keys"
 DEMO_KEY = "m2-audio-demo-key"
 RATE = 44_100
 CHANNELS = 2
@@ -80,13 +80,13 @@ def main() -> None:
     cover_path = OUTPUT / "cover_stereo_music.wav"
     stego_path = OUTPUT / "stego_long_message.wav"
     tampered_path = OUTPUT / "tampered_amplified_section.wav"
-    public_key_path = OUTPUT / "demo_public_key.pem"
     evidence_path = OUTPUT / "generation-details.json"
 
     make_cover(cover_path)
-    private = crypto.generate_keypair()
-    public_key_path.write_bytes(private.public_key().public_bytes(
-        serialization.Encoding.PEM, serialization.PublicFormat.SubjectPublicKeyInfo))
+    private = crypto.load_private_key(KEYS / "private_key.pem")
+    public = crypto.load_public_key(KEYS / "public_key.pem")
+    if crypto.public_key_fingerprint(private.public_key()) != crypto.public_key_fingerprint(public):
+        raise ValueError("keys/private_key.pem does not match keys/public_key.pem")
 
     cover = media.load_cover(cover_path)
     stego, _, info = protect.protect(
@@ -94,7 +94,7 @@ def main() -> None:
     media.save_cover(stego, stego_path)
 
     tampered, frame_start = amplify_clear_section(stego, info)
-    result = protect.verify(tampered, DEMO_KEY, private.public_key())
+    result = protect.verify(tampered, DEMO_KEY, public)
     if result.verdict != protect.TAMPERED:
         raise RuntimeError(f"Expected tampered demo asset, got {result.verdict}")
     media.save_cover(tampered, tampered_path)
@@ -109,12 +109,16 @@ def main() -> None:
         "duration_seconds": DURATION_SECONDS,
         "lsbs": 2,
         "stego_key_for_coursework_demo_only": DEMO_KEY,
+        "public_key_for_verification": "keys/public_key.pem",
         "payload_start_carrier_index": info["start"],
         "embedded_carrier_units": info["units_used"],
         "tampered_section_start_seconds": frame_start / RATE,
         "tampered_section_duration_seconds": span / RATE if (span := RATE // 2) else 0,
         "expected_tampered_verdict": result.verdict,
     }, indent=2) + "\n", encoding="utf-8")
+    # The old generator wrote a separate, random public key beside the samples.
+    # Remove it so receivers cannot accidentally choose a mismatched key.
+    (OUTPUT / "demo_public_key.pem").unlink(missing_ok=True)
     print(f"Generated WAV assets in {OUTPUT}")
 
 
