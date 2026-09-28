@@ -12,8 +12,10 @@ from .. import messages
 from ..core import crypto, media, protect
 from .widgets import DiffView, FilePicker, MediaView, busy, last_dir, remember_dir
 
-MEDIA_FILTER = ("Cover files (*.png *.bmp *.jpg *.jpeg *.wav);;"
-                "Images (*.png *.bmp *.jpg *.jpeg);;Audio (*.wav)")
+MEDIA_FILTER = ("Cover files (*.png *.bmp *.jpg *.jpeg *.wav *.mkv *.avi *.mp4 *.mov);;"
+                "Images (*.png *.bmp *.jpg *.jpeg);;Audio (*.wav);;Video (*.mkv *.avi *.mp4 *.mov)")
+# Robust mode: every bit stored this many times, read back by majority vote
+ROBUST_CHOICES = {"Off": 1, "x3 repetition": 3, "x5 repetition": 5, "x7 repetition": 7}
 OK_COLOUR, BAD_COLOUR = "#1b7f3b", "#b3261e"
 
 
@@ -48,6 +50,11 @@ class SenderTab(QWidget):
         self.k.valueChanged.connect(self._update_capacity)
         self.capacity = QLabel("")
         self.capacity.setWordWrap(True)
+        self.robust = QComboBox()
+        self.robust.addItems(ROBUST_CHOICES)
+        self.robust.setToolTip("Stores every bit several times so the payload survives noise or a "
+                               "small edit, at the cost of capacity")
+        self.robust.currentTextChanged.connect(self._update_capacity)
 
         self.stego_key = QLineEdit()
         self.stego_key.setEchoMode(QLineEdit.Password)
@@ -71,6 +78,7 @@ class SenderTab(QWidget):
         form.addRow("Preset", msg_row)
         form.addRow("Message", self.msg)
         form.addRow("LSBs used", self.k)
+        form.addRow("Robustness", self.robust)
         form.addRow("", self.capacity)
         form.addRow("Stego key", self.stego_key)
         form.addRow("", self.encrypt)
@@ -140,6 +148,27 @@ class SenderTab(QWidget):
             try:
                 self.cover = media.load_cover(path)
                 self.cover_view.show_file(path, self.cover)
+            except media.VideoTooLarge as e:
+                # a phone video is gigabytes of raw pixels, so offer a short small copy
+                ask = QMessageBox.question(
+                    self, "Video too big",
+                    f"{e}\n\nMake a 5-second, 640-pixel-wide lossless copy next to it and use that "
+                    "as the cover instead?")
+                if ask == QMessageBox.Yes:
+                    small = Path(path).with_name(f"{Path(path).stem}_5s_640.mkv")
+                    try:
+                        with busy():
+                            media.shrink_video(path, small)
+                    except Exception as err:
+                        QMessageBox.warning(self, "Couldn't shrink the video", str(err))
+                    else:
+                        self.cover_pick.edit.setText(str(small))   # loads the small copy
+                        return
+                self.cover_view.clear()
+                self.capacity.setStyleSheet(f"color: {BAD_COLOUR};")
+                self.capacity.setText(f"Can't load {Path(path).name}: {e}")
+                self.refresh()
+                return
             except Exception as e:
                 self.cover_view.clear()
                 self.capacity.setStyleSheet(f"color: {BAD_COLOUR};")
@@ -154,7 +183,8 @@ class SenderTab(QWidget):
             self.capacity.setText("")
             return
         k = self.k.value()
-        cap = protect.capacity_bytes(self.cover, k)
+        reps = ROBUST_CHOICES[self.robust.currentText()]
+        cap = protect.capacity_bytes(self.cover, k, reps)
         need = protect.body_size(self.cover, Path(self.cover_pick.text()).name,
                                  self.msg.toPlainText(), k, self.encrypt.isChecked())
         msg_len = len(self.msg.toPlainText().encode("utf-8"))
@@ -162,7 +192,8 @@ class SenderTab(QWidget):
         self.capacity.setStyleSheet(f"color: {OK_COLOUR if fits else BAD_COLOUR};")
         self.capacity.setText(
             f"Payload {need:,} bytes (message {msg_len:,} + {need - msg_len:,} fields and signature) "
-            f"of {cap:,} bytes available at {k} LSB(s), "
+            f"of {cap:,} bytes available at {k} LSB(s)"
+            + (f" with x{reps} repetition, " if reps > 1 else ", ")
             + (f"{100 * need / cap:.1f}% used." if fits else "DOES NOT FIT."))
 
     def run_protect(self):
@@ -181,7 +212,8 @@ class SenderTab(QWidget):
             with busy():
                 stego, payload, info = protect.protect(
                     self.cover, cover_path.name, self.msg.toPlainText(), self.k.value(),
-                    self.stego_key.text(), priv, self.encrypt.isChecked())
+                    self.stego_key.text(), priv, self.encrypt.isChecked(),
+                    reps=ROBUST_CHOICES[self.robust.currentText()])
         except protect.CapacityError as e:
             QMessageBox.critical(self, "Capacity check failed", str(e))
             self.log.setPlainText(f"CAPACITY CHECK FAILED\n{e}")
@@ -190,9 +222,11 @@ class SenderTab(QWidget):
             QMessageBox.warning(self, "Can't protect", str(e))
             return
 
-        # stego images are always saved losslessly, whatever the cover was
+        # stego files are always saved losslessly, whatever the cover was
         if self.cover.kind == "audio":
             suffix, ext = ".wav", "WAV audio (*.wav)"
+        elif self.cover.kind == "video":
+            suffix, ext = ".mkv", "Lossless FFV1 video (*.mkv);;AVI (*.avi)"
         else:
             suffix = cover_path.suffix.lower() if cover_path.suffix.lower() in media.IMAGE_EXTS else ".png"
             ext = "PNG image (*.png);;BMP image (*.bmp)"

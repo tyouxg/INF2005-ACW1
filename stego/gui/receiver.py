@@ -7,7 +7,7 @@ from PySide6.QtWidgets import (QCheckBox, QFormLayout, QHBoxLayout, QLabel, QLin
                                QMessageBox, QPlainTextEdit, QPushButton, QSpinBox,
                                QVBoxLayout, QWidget)
 
-from ..core import crypto, media, protect
+from ..core import crypto, media, protect, replay
 from .widgets import FilePicker, MediaView, busy
 
 COLOURS = {
@@ -25,7 +25,7 @@ class ReceiverTab(QWidget):
     def __init__(self, keys_dir: Path):
         super().__init__()
         self.file_pick = FilePicker("Choose stego file",
-                                    "Stego files (*.png *.bmp *.jpg *.jpeg *.wav)")
+                                    "Stego files (*.png *.bmp *.jpg *.jpeg *.wav *.mkv *.avi)")
         self.file_pick.edit.textChanged.connect(self._preview)
         self.stego_key = QLineEdit()
         self.stego_key.setEchoMode(QLineEdit.Password)
@@ -44,6 +44,15 @@ class ReceiverTab(QWidget):
         start_row.addWidget(self.force_start)
         start_row.addWidget(self.start, 1)
 
+        # Every authentic payload is remembered so a resent copy shows up as a
+        # replay. Clearing is for rehearsals, so the demo files start fresh.
+        self.replay_count = QLabel("")
+        clear_replay = QPushButton("Clear replay history")
+        clear_replay.clicked.connect(self._clear_replay)
+        replay_row = QHBoxLayout()
+        replay_row.addWidget(self.replay_count, 1)
+        replay_row.addWidget(clear_replay)
+
         self.go = QPushButton("Extract && verify")
         self.go.clicked.connect(self.run_verify)
         self.hint = QLabel("")
@@ -57,6 +66,7 @@ class ReceiverTab(QWidget):
         form.addRow("Stego key", self.stego_key)
         form.addRow("Public key", self.pub_pick)
         form.addRow("Testing", start_row)
+        form.addRow("Replay history", replay_row)
         form.addRow("", go_row)
 
         self.view = MediaView("Received file")
@@ -86,6 +96,16 @@ class ReceiverTab(QWidget):
         lay.addLayout(form)
         lay.addLayout(body, 1)
         self.refresh()
+        self._show_replay_count()
+
+    def _show_replay_count(self):
+        n = replay.count()
+        self.replay_count.setText(f"{n} accepted payload{'' if n == 1 else 's'} remembered "
+                                  "on this computer")
+
+    def _clear_replay(self):
+        replay.clear()
+        self._show_replay_count()
 
     def refresh(self):
         missing = []
@@ -147,3 +167,4 @@ class ReceiverTab(QWidget):
             self.message.clear()
         self.details.setPlainText(json.dumps({"details": res.details, "payload": res.payload},
                                              indent=2))
+        self._show_replay_count()

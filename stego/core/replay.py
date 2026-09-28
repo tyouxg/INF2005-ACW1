@@ -31,3 +31,12 @@ def record(nonce: str, path: Path | None = None) -> None:
     # Makes sure the keys/ folder exists first, incase it is a fresh checkout
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(sorted(seen)), encoding="utf-8")
+
+# How many payloads have been accepted so far, shown in the Receiver tab.
+def count(path: Path | None = None) -> int:
+    return len(_load(path or DEFAULT_STORE))
+
+# Forget every recorded nonce. Needed before a demo, otherwise files we
+# verified while rehearsing would come back as replays.
+def clear(path: Path | None = None) -> None:
+    (path or DEFAULT_STORE).unlink(missing_ok=True)

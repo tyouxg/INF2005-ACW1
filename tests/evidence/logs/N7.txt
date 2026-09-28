@@ -1,0 +1,12 @@
+# N7 JPEG round trip destroys the LSBs
+$ python -m stego.cli verify tests/evidence/files/n7_after_jpeg.png --key p6-4-demo-key --pub keys/public_key.pem
+Verdict: Wrong Start Location
+No valid header at offset 493246. Either the stego key is wrong (so the derived start location is wrong) or this file has no payload.
+{
+  "details": {
+    "start": 493246,
+    "carrier_units": 562800
+  },
+  "payload": null
+}
+(exit code 1)

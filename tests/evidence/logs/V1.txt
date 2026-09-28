@@ -1,0 +1,62 @@
+# Video (FFV1 .mkv), short message, 2 LSBs
+## Sender tab log (GUI)
+Saved tests\evidence\files\v1_video_stego.mkv
+Start offset 5,307,204 of 5,529,600 carrier bytes, 2 LSB(s), 526 byte body, 0.04% of carrier used
+
+{
+  "v": 2,
+  "media_id": "41d69a36b9d7",
+  "kind": "video",
+  "file": "video_cover.mkv",
+  "timestamp": "2026-09-28T08:15:52+00:00",
+  "media_hash": "bdb0563ff63b39c063eca90001e17e7176a35179cf7ea1ee71a73744b2de68d2",
+  "nonce": "16e43c145437adc1f2eb5d69e60dad50",
+  "lsb": 2,
+  "signer": "4f5c22730b9b77f2",
+  "meta": {
+    "team": "P6-4",
+    "tool": "INF2005-ACW1 stego"
+  },
+  "message": {
+    "enc": false,
+    "text": "Explain how steganography can be used to embed hidden verification data in image and audio cover objects."
+  }
+}
+## Receiver side (CLI)
+$ python -m stego.cli verify tests/evidence/files/v1_video_stego.mkv --key p6-4-demo-key --pub keys/public_key.pem
+Verdict: Authentic
+Signature valid and media hash matches.
+Message: Explain how steganography can be used to embed hidden verification data in image and audio cover objects.
+{
+  "details": {
+    "start": 5307204,
+    "carrier_units": 5529600,
+    "k": 2,
+    "body_len": 526,
+    "reps": 1,
+    "version": 2,
+    "header_units": 64,
+    "expected_hash": "bdb0563ff63b39c063eca90001e17e7176a35179cf7ea1ee71a73744b2de68d2",
+    "current_hash": "bdb0563ff63b39c063eca90001e17e7176a35179cf7ea1ee71a73744b2de68d2"
+  },
+  "payload": {
+    "file": "video_cover.mkv",
+    "kind": "video",
+    "lsb": 2,
+    "media_hash": "bdb0563ff63b39c063eca90001e17e7176a35179cf7ea1ee71a73744b2de68d2",
+    "media_id": "41d69a36b9d7",
+    "message": {
+      "enc": false,
+      "text": "Explain how steganography can be used to embed hidden verification data in image and audio cover objects."
+    },
+    "meta": {
+      "team": "P6-4",
+      "tool": "INF2005-ACW1 stego"
+    },
+    "nonce": "16e43c145437adc1f2eb5d69e60dad50",
+    "signer": "4f5c22730b9b77f2",
+    "timestamp": "2026-09-28T08:15:52+00:00",
+    "v": 2
+  }
+}
+(exit code 0)

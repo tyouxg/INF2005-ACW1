@@ -4,6 +4,10 @@
     python -m stego.cli protect cover.png stego.png -k 2 --key "secret" --msg "hello"
     python -m stego.cli verify stego.png --key "secret"
     python -m stego.cli capacity cover.png -k 1 --msg-file long.txt
+    python -m stego.cli clear-replay
+    python -m stego.cli protect clip.mkv out.mkv -k 1 --key "secret" --msg "hi" --robust 5
+    python -m stego.cli scan suspicious.png
+    python -m stego.cli shrink-video phone.mp4 small.mkv --seconds 5 --width 640
 """
 
 import argparse
@@ -11,7 +15,7 @@ import json
 import sys
 from pathlib import Path
 
-from .core import crypto, media, protect
+from .core import crypto, media, protect, replay, steganalysis
 
 KEYS_DIR = Path(__file__).resolve().parent.parent / "keys"
 
@@ -27,7 +31,7 @@ def cmd_protect(args):
     priv = crypto.load_private_key(args.priv)
     try:
         stego, payload, info = protect.protect(cover, Path(args.cover).name, text, args.k,
-                                               args.key, priv, args.encrypt)
+                                               args.key, priv, args.encrypt, reps=args.robust)
     except protect.CapacityError as e:
         sys.exit(f"Capacity check failed: {e}")
     media.save_cover(stego, args.out)
@@ -55,6 +59,28 @@ def cmd_verify(args):
     sys.exit(0 if res.verdict == protect.AUTHENTIC else 1)
 
 
+def cmd_scan(args):
+    r = steganalysis.scan(media.load_cover(args.file))
+    print(f"Chi-square attack: {100 * r.chi_square_embedded:.0f}% of chunks look embedded")
+    if not r.found:
+        print("Structure scan: nothing readable in the low bits (clean, or a masked version 2 payload)")
+        sys.exit(0)
+    print(f"Structure scan: readable JSON at k={r.k}, carrier bytes {r.start:,}-{r.end:,}")
+    print(r.text)
+    sys.exit(1)
+
+
+def cmd_shrink_video(args):
+    out = media.shrink_video(args.src, args.out, args.seconds, args.width)
+    print(f"Wrote {out}: {media.load_cover(out).describe()}")
+
+
+def cmd_clear_replay(args):
+    n = replay.count()
+    replay.clear()
+    print(f"Forgot {n} accepted payload(s). Verifying them again will say Authentic.")
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(prog="stego")
     sub = ap.add_subparsers(required=True)
@@ -72,6 +98,7 @@ def main(argv=None):
     p.add_argument("--msg-file")
     p.add_argument("--encrypt", action="store_true", help="AES-GCM encrypt the message")
     p.add_argument("--priv", default=KEYS_DIR / "private_key.pem")
+    p.add_argument("--robust", type=int, default=1, help="store every bit this many times (odd, e.g. 5)")
     p.set_defaults(func=cmd_protect)
 
     p = sub.add_parser("verify", help="extract and verify a payload")
@@ -88,6 +115,20 @@ def main(argv=None):
     p.add_argument("--msg-file")
     p.add_argument("--encrypt", action="store_true")
     p.set_defaults(func=cmd_capacity)
+
+    p = sub.add_parser("scan", help="look for hidden data without any key (steganalysis)")
+    p.add_argument("file")
+    p.set_defaults(func=cmd_scan)
+
+    p = sub.add_parser("shrink-video", help="make a short, small, lossless copy of a video")
+    p.add_argument("src")
+    p.add_argument("out", help="should end in .mkv")
+    p.add_argument("--seconds", type=float, default=5)
+    p.add_argument("--width", type=int, default=640)
+    p.set_defaults(func=cmd_shrink_video)
+
+    p = sub.add_parser("clear-replay", help="forget which payloads were already verified")
+    p.set_defaults(func=cmd_clear_replay)
 
     args = ap.parse_args(argv)
     args.func(args)

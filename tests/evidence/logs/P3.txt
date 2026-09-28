@@ -1,0 +1,66 @@
+# Image, custom payload encrypted with AES-GCM, 3 LSBs
+## Sender tab log (GUI)
+Saved tests\evidence\files\p3_image_custom_encrypted.png
+Start offset 493,246 of 562,800 carrier bytes, 3 LSB(s), 761 byte body, 0.37% of carrier used
+
+{
+  "v": 2,
+  "media_id": "6628185c9923",
+  "kind": "image",
+  "file": "image_cover.png",
+  "timestamp": "2026-09-28T08:15:48+00:00",
+  "media_hash": "6c7a2bcbd4973c170458199f3fde41ef981a613a93787e341eb4bb3cbcac8c5a",
+  "nonce": "d674cb436822c1216601f51fae69d75f",
+  "lsb": 3,
+  "signer": "4f5c22730b9b77f2",
+  "meta": {
+    "team": "P6-4",
+    "tool": "INF2005-ACW1 stego"
+  },
+  "message": {
+    "enc": true,
+    "salt": "eb0b62e2011686ea8be503e37d7c1cf5",
+    "nonce": "acb1e4198aa8f611ef95ead9",
+    "ct": "00e08b6b66381148511b09fe40dcad0bbd106084d0f2b38678785ef83ada066f7a2b5b34881c59f0362cd7cb3fa5fbfac553834a4623a352b4718a825cef126167dc52559eda2a3df8dcc9b9dd9867378ab50775af6efb99bed54bbbe35c790b772a0d726b3b276ce57b3de26405eb5019eb9fe1fe0a1df61b20bb16bbe40cecb4a7dcb995"
+  }
+}
+## Receiver side (CLI)
+$ python -m stego.cli verify tests/evidence/files/p3_image_custom_encrypted.png --key p6-4-demo-key --pub keys/public_key.pem
+Verdict: Authentic
+Signature valid and media hash matches.
+Message: Donor match confirmed for patient P-4471, transplant scheduled 5 Oct 06:00. Details restricted to surgical team only.
+{
+  "details": {
+    "start": 493246,
+    "carrier_units": 562800,
+    "k": 3,
+    "body_len": 761,
+    "reps": 1,
+    "version": 2,
+    "header_units": 64,
+    "expected_hash": "6c7a2bcbd4973c170458199f3fde41ef981a613a93787e341eb4bb3cbcac8c5a",
+    "current_hash": "6c7a2bcbd4973c170458199f3fde41ef981a613a93787e341eb4bb3cbcac8c5a"
+  },
+  "payload": {
+    "file": "image_cover.png",
+    "kind": "image",
+    "lsb": 3,
+    "media_hash": "6c7a2bcbd4973c170458199f3fde41ef981a613a93787e341eb4bb3cbcac8c5a",
+    "media_id": "6628185c9923",
+    "message": {
+      "ct": "00e08b6b66381148511b09fe40dcad0bbd106084d0f2b38678785ef83ada066f7a2b5b34881c59f0362cd7cb3fa5fbfac553834a4623a352b4718a825cef126167dc52559eda2a3df8dcc9b9dd9867378ab50775af6efb99bed54bbbe35c790b772a0d726b3b276ce57b3de26405eb5019eb9fe1fe0a1df61b20bb16bbe40cecb4a7dcb995",
+      "enc": true,
+      "nonce": "acb1e4198aa8f611ef95ead9",
+      "salt": "eb0b62e2011686ea8be503e37d7c1cf5"
+    },
+    "meta": {
+      "team": "P6-4",
+      "tool": "INF2005-ACW1 stego"
+    },
+    "nonce": "d674cb436822c1216601f51fae69d75f",
+    "signer": "4f5c22730b9b77f2",
+    "timestamp": "2026-09-28T08:15:48+00:00",
+    "v": 2
+  }
+}
+(exit code 0)

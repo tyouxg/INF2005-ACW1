@@ -90,6 +90,12 @@ def subkey(master: bytes, label: str, length: int = 32, salt: bytes | None = Non
     return hkdf.derive(master)
 
 
+def keystream(master: bytes, label: str, length: int) -> bytes:
+    # SHAKE-256 can give any number of bytes (HKDF tops out at 8160), which we
+    # need to mask a payload body of any size
+    return hashlib.shake_256(master + label.encode()).digest(length)
+
+
 def derive_start(master: bytes, carrier_len: int, kind: str) -> int:
     # Tied to the carrier length, so the same key lands somewhere different in
     # each file, and a cropped/trimmed file no longer lines up.

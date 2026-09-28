@@ -6,11 +6,11 @@ from pathlib import Path
 
 import numpy as np
 from PySide6.QtCore import QSettings, Qt, QUrl
-from PySide6.QtGui import QColor, QImage, QPainter, QPen, QPixmap
+from PySide6.QtGui import QColor, QDesktopServices, QImage, QPainter, QPen, QPixmap
 from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
 from PySide6.QtWidgets import (QApplication, QComboBox, QFileDialog, QGroupBox, QHBoxLayout,
-                               QLabel, QLineEdit, QPushButton, QSizePolicy, QVBoxLayout,
-                               QWidget)
+                               QLabel, QLineEdit, QPushButton, QSizePolicy, QSlider,
+                               QVBoxLayout, QWidget)
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 
@@ -96,11 +96,12 @@ class ImageLabel(QLabel):
 
 
 class MediaView(QGroupBox):
-    """Preview box: scaled image for PNG/BMP, play/stop buttons for WAV."""
+    """Preview box: scaled image for PNG/BMP, play/stop for WAV, frame slider for video."""
 
     def __init__(self, title: str):
         super().__init__(title)
         self.path = None
+        self._video = None
         self.image = ImageLabel("No file loaded")
         self.info = QLabel("")
         self.info.setWordWrap(True)
@@ -115,16 +116,36 @@ class MediaView(QGroupBox):
         controls = QHBoxLayout()
         controls.addWidget(self.play_btn)
         controls.addWidget(self.stop_btn)
+
+        # video: step through the frames here, or open the file in a real player
+        # (FFV1 plays in VLC and ffplay, not in Windows' built-in app)
+        self.frame = QSlider(Qt.Horizontal)
+        self.frame.valueChanged.connect(self._show_frame)
+        self.open_btn = QPushButton("Open in video player")
+        self.open_btn.clicked.connect(
+            lambda: QDesktopServices.openUrl(QUrl.fromLocalFile(str(self.path))))
         self._set_audio_controls(False)
+        self._set_video_controls(False)
 
         lay = QVBoxLayout(self)
         lay.addWidget(self.image, 1)
         lay.addLayout(controls)
+        lay.addWidget(self.frame)
+        lay.addWidget(self.open_btn)
         lay.addWidget(self.info)
 
     def _set_audio_controls(self, on: bool):
         self.play_btn.setVisible(on)
         self.stop_btn.setVisible(on)
+
+    def _set_video_controls(self, on: bool):
+        self.frame.setVisible(on)
+        self.open_btn.setVisible(on)
+
+    def _show_frame(self, i: int):
+        if self._video is not None:
+            self.image.set_image(array_to_pixmap(media.video_frame(self._video, i)))
+            self.image.setToolTip(f"Frame {i + 1} of {self._video.params['frames']}")
 
     def _waveform_pixmap(self, cover):
         """Draw a small before/after WAV waveform without another dependency."""
@@ -154,10 +175,18 @@ class MediaView(QGroupBox):
         self.player.setSource(QUrl())
         self.path = Path(path)
         cover = cover or media.load_cover(path)
+        self._video = None
+        self._set_video_controls(cover.kind == "video")
         if cover.kind == "image":
             self._set_audio_controls(False)
             self.image.set_image(QPixmap(str(path)))
             self.image.setToolTip("")
+        elif cover.kind == "video":
+            self._set_audio_controls(False)
+            self._video = cover
+            self.frame.setRange(0, cover.params["frames"] - 1)
+            self.frame.setValue(0)
+            self._show_frame(0)
         else:
             self._set_audio_controls(True)
             self.image.set_image(self._waveform_pixmap(cover))
@@ -170,10 +199,12 @@ class MediaView(QGroupBox):
         self.player.stop()
         self.player.setSource(QUrl())
         self.path = None
+        self._video = None
         self.image.set_image(None, "No file loaded")
         self.image.setToolTip("")
         self.info.setText("")
         self._set_audio_controls(False)
+        self._set_video_controls(False)
 
 
 class DiffView(QGroupBox):
@@ -236,10 +267,16 @@ class DiffView(QGroupBox):
             self.image.set_image(None, "Protect an image to see the difference")
             return
             
-        if c.kind != "image":
+        prefix = ""
+        if c.kind == "video":
+            # show the one frame the key-derived start landed in
+            f = visual.first_changed_frame(c, s)
+            prefix = f"Frame {f + 1} of {c.params['frames']} (picked by the stego key). "
+            c, s = visual.frame_cover(c, f), visual.frame_cover(s, f)
+        elif c.kind != "image":
             self.image.setVisible(True)
             self.histogram.setVisible(False)
-            self.image.set_image(None, "Difference view is for images only")
+            self.image.set_image(None, "Difference view is for images and video only")
             return
             
         mode = self.mode.currentIndex()
@@ -277,6 +314,9 @@ class DiffView(QGroupBox):
             self.info.setText("RGB intensity distribution of the stego image.")
             # Plot the stego array, but force it to use the cover's y-axis limits
             self.histogram.plot_image(visual.image_rgb(s), ref_arr=visual.image_rgb(c))
+
+        if prefix:
+            self.info.setText(prefix + self.info.text())
 
     def _save(self):
         # We disable the save button for histograms to keep it simple,
