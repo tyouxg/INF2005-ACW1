@@ -159,6 +159,9 @@ The GUI WAV previews include a waveform, allowing a before/after comparison.
   have noisy low bits. A stronger statistical test might still flag big payloads.
 - Robust mode divides capacity by the repetition factor. Video keeps no audio track and every frame is
   held in memory.
+- Transparent PNGs lose their transparency: the alpha channel is dropped, so transparent areas turn
+  black in the stego image.
+- The replay log is per computer and nothing checks how old the timestamp is.
 - A wrong stego key and a file with no payload both show *Wrong Start Location*, because without the key
   the two cases look the same.
 
