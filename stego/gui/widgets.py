@@ -370,15 +370,22 @@ class HistogramView(QWidget):
         self.clear()
 
     def plot_image(self, arr: np.ndarray, ref_arr: np.ndarray = None):
-        """Plots histograms. If ref_arr is provided, its maximum bin height is used to lock the y-axis."""
+        """Plots histograms, ignoring solid background spikes (0 and 255) to zoom in on image data."""
         self.figure.clear()
         colors = ('red', 'green', 'blue')
         
-        # Find the highest peak in the reference array to lock the y-axis
-        ymax = None
-        if ref_arr is not None:
-            max_counts = [np.histogram(ref_arr[:, :, i], bins=256, range=(0, 256))[0].max() for i in range(3)]
-            ymax = max(max_counts) * 1.05  # Add 5% padding to the top so peaks don't touch the ceiling
+        target = ref_arr if ref_arr is not None else arr
+        
+        channel_ymax = []
+        for i in range(3):
+            counts = np.histogram(target[:, :, i], bins=256, range=(0, 256))[0]
+            # Exclude extreme saturated values (0 = pure black, 255 = pure white)
+            interior_counts = counts[1:255]
+            if len(interior_counts) > 0 and interior_counts.max() > 0:
+                peak = float(interior_counts.max())
+            else:
+                peak = float(counts.max())
+            channel_ymax.append(max(1.0, peak * 1.15))
             
         for i, color in enumerate(colors):
             ax = self.figure.add_subplot(1, 3, i + 1)
@@ -386,10 +393,7 @@ class HistogramView(QWidget):
             ax.hist(channel_data, bins=256, range=(0, 256), color=color)
             ax.set_title(f"{color.capitalize()} Channel")
             ax.set_xlim([0, 255])
-            
-            # Lock the y-axis if a reference limit was calculated
-            if ymax is not None:
-                ax.set_ylim([0, ymax])
+            ax.set_ylim([0, channel_ymax[i]])
                 
         self.figure.tight_layout()
         self.canvas.draw()
