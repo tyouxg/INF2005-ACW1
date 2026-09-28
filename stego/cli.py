@@ -31,7 +31,8 @@ def cmd_protect(args):
     priv = crypto.load_private_key(args.priv)
     try:
         stego, payload, info = protect.protect(cover, Path(args.cover).name, text, args.k,
-                                               args.key, priv, args.encrypt, reps=args.robust)
+                                               args.key, priv, args.encrypt, reps=args.robust,
+                                               version=1 if args.legacy_v1 else protect.VERSION)
     except protect.CapacityError as e:
         sys.exit(f"Capacity check failed: {e}")
     media.save_cover(stego, args.out)
@@ -99,6 +100,8 @@ def main(argv=None):
     p.add_argument("--encrypt", action="store_true", help="AES-GCM encrypt the message")
     p.add_argument("--priv", default=KEYS_DIR / "private_key.pem")
     p.add_argument("--robust", type=int, default=1, help="store every bit this many times (odd, e.g. 5)")
+    p.add_argument("--legacy-v1", action="store_true",
+                   help="old format with an unmasked body, only to show the steganalysis scan finding it")
     p.set_defaults(func=cmd_protect)
 
     p = sub.add_parser("verify", help="extract and verify a payload")
