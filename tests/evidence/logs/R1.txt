@@ -5,12 +5,12 @@ Start offset 493,246 of 562,800 carrier bytes, 2 LSB(s), 526 byte body, 1.95% of
 
 {
   "v": 2,
-  "media_id": "08137b5fa542",
+  "media_id": "25067d6a0cb0",
   "kind": "image",
   "file": "image_cover.png",
-  "timestamp": "2026-09-27T17:17:05+00:00",
+  "timestamp": "2026-09-28T08:16:01+00:00",
   "media_hash": "14a3ffd329064f8c66d09357299d2392152e480fa545f856b012fdfc0cd9e906",
-  "nonce": "c645154d7823233a12ad2c93ba2358f9",
+  "nonce": "61a64663833f8f894899cb2220be791d",
   "lsb": 2,
   "signer": "4f5c22730b9b77f2",
   "meta": {
@@ -44,7 +44,7 @@ Message: Explain how steganography can be used to embed hidden verification data
     "kind": "image",
     "lsb": 2,
     "media_hash": "14a3ffd329064f8c66d09357299d2392152e480fa545f856b012fdfc0cd9e906",
-    "media_id": "08137b5fa542",
+    "media_id": "25067d6a0cb0",
     "message": {
       "enc": false,
       "text": "Explain how steganography can be used to embed hidden verification data in image and audio cover objects."
@@ -53,9 +53,9 @@ Message: Explain how steganography can be used to embed hidden verification data
       "team": "P6-4",
       "tool": "INF2005-ACW1 stego"
     },
-    "nonce": "c645154d7823233a12ad2c93ba2358f9",
+    "nonce": "61a64663833f8f894899cb2220be791d",
     "signer": "4f5c22730b9b77f2",
-    "timestamp": "2026-09-27T17:17:05+00:00",
+    "timestamp": "2026-09-28T08:16:01+00:00",
     "v": 2
   }
 }

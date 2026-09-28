@@ -1,18 +1,66 @@
 {
   "normal": [
     {
-      "name": "Edit outside payload",
-      "what": "Flipped the top bit of 500 bytes that hold no payload",
+      "number": 1,
+      "name": "Wrong stego key",
+      "check": "1. find the header",
+      "attacker_has": "the file and the public key, not the stego key",
+      "what": "Tried to extract with a guessed passphrase",
       "expected": [
-        "Tampered"
+        "Wrong Start Location"
       ],
-      "got": "Tampered",
+      "got": "Wrong Start Location",
       "passed": true,
-      "recovered": true,
-      "reason": "Signature is valid, but the media hash doesn't match. The file was modified after it was protected."
+      "recovered": false,
+      "reason": "No valid header at offset 512916. Either the stego key is wrong (so the derived start location is wrong) or this file has no payload."
     },
     {
+      "number": 2,
+      "name": "Off-by-one start",
+      "check": "1. find the header",
+      "attacker_has": "the file and a start position 1 byte off",
+      "what": "Read the payload one byte after the real start",
+      "expected": [
+        "Wrong Start Location"
+      ],
+      "got": "Wrong Start Location",
+      "passed": true,
+      "recovered": false,
+      "reason": "No valid header at offset 493247. Either the stego key is wrong (so the derived start location is wrong) or this file has no payload."
+    },
+    {
+      "number": 3,
+      "name": "Crop / trim",
+      "check": "1. find the header",
+      "attacker_has": "just the file",
+      "what": "Removed a pixel row, the last video frame, or 100 audio frames",
+      "expected": [
+        "Wrong Start Location"
+      ],
+      "got": "Wrong Start Location",
+      "passed": true,
+      "recovered": false,
+      "reason": "No valid header at offset 346990. Either the stego key is wrong (so the derived start location is wrong) or this file has no payload."
+    },
+    {
+      "number": 4,
+      "name": "Break length field",
+      "check": "2. body fits",
+      "attacker_has": "just the file (or accidental damage)",
+      "what": "Flipped the top bit of the header's length field",
+      "expected": [
+        "Payload Missing"
+      ],
+      "got": "Payload Missing",
+      "passed": true,
+      "recovered": false,
+      "reason": "Header found but the payload body is missing or truncated."
+    },
+    {
+      "number": 5,
       "name": "Flip one payload bit",
+      "check": "3. signature",
+      "attacker_has": "the file, the payload's location and the stego key, not the private key",
       "what": "Changed a single bit inside the hidden payload",
       "expected": [
         "Signature Invalid"
@@ -23,51 +71,24 @@
       "reason": "Signature check failed. The embedded payload was altered, or it was signed by a different key than the public key provided."
     },
     {
-      "name": "Break length field",
-      "what": "Flipped the top bit of the header's length field",
+      "number": 6,
+      "name": "Edit outside payload",
+      "check": "4. media hash",
+      "attacker_has": "just the file",
+      "what": "Flipped the top bit of 500 bytes that hold no payload",
       "expected": [
-        "Payload Missing"
+        "Tampered"
       ],
-      "got": "Payload Missing",
+      "got": "Tampered",
       "passed": true,
-      "recovered": false,
-      "reason": "Header found but the payload body is missing or truncated."
+      "recovered": true,
+      "reason": "Signature is valid, but the media hash doesn't match. The file was modified after it was protected."
     },
     {
-      "name": "Wrong stego key",
-      "what": "Tried to extract with a guessed passphrase",
-      "expected": [
-        "Wrong Start Location"
-      ],
-      "got": "Wrong Start Location",
-      "passed": true,
-      "recovered": false,
-      "reason": "No valid header at offset 512916. Either the stego key is wrong (so the derived start location is wrong) or this file has no payload."
-    },
-    {
-      "name": "Off-by-one start",
-      "what": "Read the payload one byte after the real start",
-      "expected": [
-        "Wrong Start Location"
-      ],
-      "got": "Wrong Start Location",
-      "passed": true,
-      "recovered": false,
-      "reason": "No valid header at offset 493247. Either the stego key is wrong (so the derived start location is wrong) or this file has no payload."
-    },
-    {
-      "name": "Crop / trim",
-      "what": "Removed a pixel row, the last video frame, or 100 audio frames",
-      "expected": [
-        "Wrong Start Location"
-      ],
-      "got": "Wrong Start Location",
-      "passed": true,
-      "recovered": false,
-      "reason": "No valid header at offset 346990. Either the stego key is wrong (so the derived start location is wrong) or this file has no payload."
-    },
-    {
+      "number": 7,
       "name": "Substitute payload",
+      "check": "4. media hash",
+      "attacker_has": "a genuine file, its stego key and a fake file, not the private key",
       "what": "Pasted the genuine payload into a different file",
       "expected": [
         "Tampered"
@@ -78,7 +99,24 @@
       "reason": "Signature is valid, but the media hash doesn't match. The file was modified after it was protected."
     },
     {
+      "number": 8,
+      "name": "Replay",
+      "check": "5. replay log",
+      "attacker_has": "an old genuine file they intercepted",
+      "what": "Presented the same authentic file a second time",
+      "expected": [
+        "Replay Detected"
+      ],
+      "got": "Replay Detected",
+      "passed": true,
+      "recovered": true,
+      "reason": "Signature and hash are valid, but this exact payload has been verified before. This file may be a replay of an earlier legitimate message. If you are only re-checking a file you already accepted, clear the replay history and verify again."
+    },
+    {
+      "number": 9,
       "name": "Mild LSB noise",
+      "check": "damage (robustness)",
+      "attacker_has": "nothing: a noisy channel",
       "what": "Flipped the lowest bit of 1% of all carrier bytes",
       "expected": [
         "Wrong Start Location",
@@ -91,7 +129,10 @@
       "reason": "Header found but the payload body is missing or truncated."
     },
     {
+      "number": 10,
       "name": "Scratch over payload",
+      "check": "damage (robustness)",
+      "attacker_has": "nothing: a local edit or scratch",
       "what": "Overwrote 200 bytes in the middle of the hidden payload",
       "expected": [
         "Wrong Start Location",
@@ -104,7 +145,10 @@
       "reason": "Signature check failed. The embedded payload was altered, or it was signed by a different key than the public key provided."
     },
     {
+      "number": 11,
       "name": "Lossy re-encode",
+      "check": "damage (limitation)",
+      "attacker_has": "nothing: an app that compresses the file",
       "what": "JPEG for images, H.264 for video, full LSB noise for audio",
       "expected": [
         "Wrong Start Location",
@@ -115,55 +159,14 @@
       "passed": true,
       "recovered": false,
       "reason": "No valid header at offset 493246. Either the stego key is wrong (so the derived start location is wrong) or this file has no payload."
-    },
-    {
-      "name": "Replay",
-      "what": "Presented the same authentic file a second time",
-      "expected": [
-        "Replay Detected"
-      ],
-      "got": "Replay Detected",
-      "passed": true,
-      "recovered": true,
-      "reason": "Signature and hash are valid, but this exact payload has been verified before. This file may be a replay of an earlier legitimate message. If you are only re-checking a file you already accepted, clear the replay history and verify again."
     }
   ],
   "robust": [
     {
-      "name": "Edit outside payload",
-      "what": "Flipped the top bit of 500 bytes that hold no payload",
-      "expected": [
-        "Tampered"
-      ],
-      "got": "Tampered",
-      "passed": true,
-      "recovered": true,
-      "reason": "Signature is valid, but the media hash doesn't match. The file was modified after it was protected."
-    },
-    {
-      "name": "Flip one payload bit",
-      "what": "Changed a single bit inside the hidden payload",
-      "expected": [
-        "Authentic"
-      ],
-      "got": "Authentic",
-      "passed": true,
-      "recovered": true,
-      "reason": "Signature valid and media hash matches."
-    },
-    {
-      "name": "Break length field",
-      "what": "Flipped the top bit of the header's length field",
-      "expected": [
-        "Payload Missing"
-      ],
-      "got": "Payload Missing",
-      "passed": true,
-      "recovered": false,
-      "reason": "Header found but the payload body is missing or truncated."
-    },
-    {
+      "number": 1,
       "name": "Wrong stego key",
+      "check": "1. find the header",
+      "attacker_has": "the file and the public key, not the stego key",
       "what": "Tried to extract with a guessed passphrase",
       "expected": [
         "Wrong Start Location"
@@ -174,7 +177,10 @@
       "reason": "No valid header at offset 512916. Either the stego key is wrong (so the derived start location is wrong) or this file has no payload."
     },
     {
+      "number": 2,
       "name": "Off-by-one start",
+      "check": "1. find the header",
+      "attacker_has": "the file and a start position 1 byte off",
       "what": "Read the payload one byte after the real start",
       "expected": [
         "Wrong Start Location"
@@ -185,7 +191,10 @@
       "reason": "No valid header at offset 493247. Either the stego key is wrong (so the derived start location is wrong) or this file has no payload."
     },
     {
+      "number": 3,
       "name": "Crop / trim",
+      "check": "1. find the header",
+      "attacker_has": "just the file",
       "what": "Removed a pixel row, the last video frame, or 100 audio frames",
       "expected": [
         "Wrong Start Location"
@@ -196,7 +205,52 @@
       "reason": "No valid header at offset 346990. Either the stego key is wrong (so the derived start location is wrong) or this file has no payload."
     },
     {
+      "number": 4,
+      "name": "Break length field",
+      "check": "2. body fits",
+      "attacker_has": "just the file (or accidental damage)",
+      "what": "Flipped the top bit of the header's length field",
+      "expected": [
+        "Payload Missing"
+      ],
+      "got": "Payload Missing",
+      "passed": true,
+      "recovered": false,
+      "reason": "Header found but the payload body is missing or truncated."
+    },
+    {
+      "number": 5,
+      "name": "Flip one payload bit",
+      "check": "3. signature",
+      "attacker_has": "the file, the payload's location and the stego key, not the private key",
+      "what": "Changed a single bit inside the hidden payload",
+      "expected": [
+        "Authentic"
+      ],
+      "got": "Authentic",
+      "passed": true,
+      "recovered": true,
+      "reason": "Signature valid and media hash matches."
+    },
+    {
+      "number": 6,
+      "name": "Edit outside payload",
+      "check": "4. media hash",
+      "attacker_has": "just the file",
+      "what": "Flipped the top bit of 500 bytes that hold no payload",
+      "expected": [
+        "Tampered"
+      ],
+      "got": "Tampered",
+      "passed": true,
+      "recovered": true,
+      "reason": "Signature is valid, but the media hash doesn't match. The file was modified after it was protected."
+    },
+    {
+      "number": 7,
       "name": "Substitute payload",
+      "check": "4. media hash",
+      "attacker_has": "a genuine file, its stego key and a fake file, not the private key",
       "what": "Pasted the genuine payload into a different file",
       "expected": [
         "Tampered"
@@ -207,7 +261,24 @@
       "reason": "Signature is valid, but the media hash doesn't match. The file was modified after it was protected."
     },
     {
+      "number": 8,
+      "name": "Replay",
+      "check": "5. replay log",
+      "attacker_has": "an old genuine file they intercepted",
+      "what": "Presented the same authentic file a second time",
+      "expected": [
+        "Replay Detected"
+      ],
+      "got": "Replay Detected",
+      "passed": true,
+      "recovered": true,
+      "reason": "Signature and hash are valid, but this exact payload has been verified before. This file may be a replay of an earlier legitimate message. If you are only re-checking a file you already accepted, clear the replay history and verify again."
+    },
+    {
+      "number": 9,
       "name": "Mild LSB noise",
+      "check": "damage (robustness)",
+      "attacker_has": "nothing: a noisy channel",
       "what": "Flipped the lowest bit of 1% of all carrier bytes",
       "expected": [
         "Tampered"
@@ -218,7 +289,10 @@
       "reason": "Signature is valid, but the media hash doesn't match. The file was modified after it was protected."
     },
     {
+      "number": 10,
       "name": "Scratch over payload",
+      "check": "damage (robustness)",
+      "attacker_has": "nothing: a local edit or scratch",
       "what": "Overwrote 200 bytes in the middle of the hidden payload",
       "expected": [
         "Tampered"
@@ -229,7 +303,10 @@
       "reason": "Signature is valid, but the media hash doesn't match. The file was modified after it was protected."
     },
     {
+      "number": 11,
       "name": "Lossy re-encode",
+      "check": "damage (limitation)",
+      "attacker_has": "nothing: an app that compresses the file",
       "what": "JPEG for images, H.264 for video, full LSB noise for audio",
       "expected": [
         "Wrong Start Location",
@@ -240,17 +317,6 @@
       "passed": true,
       "recovered": false,
       "reason": "No valid header at offset 493246. Either the stego key is wrong (so the derived start location is wrong) or this file has no payload."
-    },
-    {
-      "name": "Replay",
-      "what": "Presented the same authentic file a second time",
-      "expected": [
-        "Replay Detected"
-      ],
-      "got": "Replay Detected",
-      "passed": true,
-      "recovered": true,
-      "reason": "Signature and hash are valid, but this exact payload has been verified before. This file may be a replay of an earlier legitimate message. If you are only re-checking a file you already accepted, clear the replay history and verify again."
     }
   ]
 }

@@ -361,10 +361,15 @@ def black_out_other_frame(stego_path, out, payload_frame):
     return target
 
 
+def attack_dict(r):
+    return {"number": r.number, "name": r.name, "check": r.check, "attacker_has": r.attacker_has,
+            "what": r.what, "expected": list(r.expected), "got": r.got, "passed": r.passed,
+            "recovered": r.recovered, "reason": r.reason}
+
+
 def attack_rows(path, key=KEY):
     rows = attacks.run_all(media.load_cover(path), key, crypto.load_public_key(PUB))
-    return [{"name": r.name, "what": r.what, "expected": list(r.expected), "got": r.got,
-             "passed": r.passed, "recovered": r.recovered, "reason": r.reason} for r in rows]
+    return [attack_dict(r) for r in rows]
 
 
 def advanced_cases(gui, image_cover):
@@ -503,9 +508,7 @@ def main():
         attack_results = {}
         for kind, path in (("image", p1), ("audio", p2)):
             rows = attacks.run_all(media.load_cover(path), KEY, crypto.load_public_key(PUB))
-            attack_results[kind] = [{"name": r.name, "what": r.what, "expected": list(r.expected),
-                                     "got": r.got, "passed": r.passed, "reason": r.reason}
-                                    for r in rows]
+            attack_results[kind] = [attack_dict(r) for r in rows]
             gui.attack_lab(path)
             gui.shot(f"attack_lab_{kind}", 2)
             caught = sum(r.passed for r in rows)

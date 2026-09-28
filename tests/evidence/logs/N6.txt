@@ -20,7 +20,7 @@ Message: Explain how steganography can be used to embed hidden verification data
     "kind": "image",
     "lsb": 2,
     "media_hash": "f97f1265bd0d420afdae41ee320c9d00754ea6258bfc6cee64111b3b9de87b7a",
-    "media_id": "0f149137f4dd",
+    "media_id": "95cdf84d24a1",
     "message": {
       "enc": false,
       "text": "Explain how steganography can be used to embed hidden verification data in image and audio cover objects."
@@ -29,9 +29,9 @@ Message: Explain how steganography can be used to embed hidden verification data
       "team": "P6-4",
       "tool": "INF2005-ACW1 stego"
     },
-    "nonce": "16b384a9445fa088af50cdd06729e0f1",
+    "nonce": "cc91c0a940b89cfe8b4287779f039df0",
     "signer": "4f5c22730b9b77f2",
-    "timestamp": "2026-09-27T17:16:51+00:00",
+    "timestamp": "2026-09-28T08:15:47+00:00",
     "v": 2
   }
 }
@@ -59,7 +59,7 @@ Message: Explain how steganography can be used to embed hidden verification data
     "kind": "image",
     "lsb": 2,
     "media_hash": "f97f1265bd0d420afdae41ee320c9d00754ea6258bfc6cee64111b3b9de87b7a",
-    "media_id": "0f149137f4dd",
+    "media_id": "95cdf84d24a1",
     "message": {
       "enc": false,
       "text": "Explain how steganography can be used to embed hidden verification data in image and audio cover objects."
@@ -68,9 +68,9 @@ Message: Explain how steganography can be used to embed hidden verification data
       "team": "P6-4",
       "tool": "INF2005-ACW1 stego"
     },
-    "nonce": "16b384a9445fa088af50cdd06729e0f1",
+    "nonce": "cc91c0a940b89cfe8b4287779f039df0",
     "signer": "4f5c22730b9b77f2",
-    "timestamp": "2026-09-27T17:16:51+00:00",
+    "timestamp": "2026-09-28T08:15:47+00:00",
     "v": 2
   }
 }
@@ -103,7 +103,7 @@ Message: Explain how steganography can be used to embed hidden verification data
     "kind": "image",
     "lsb": 2,
     "media_hash": "f97f1265bd0d420afdae41ee320c9d00754ea6258bfc6cee64111b3b9de87b7a",
-    "media_id": "0f149137f4dd",
+    "media_id": "95cdf84d24a1",
     "message": {
       "enc": false,
       "text": "Explain how steganography can be used to embed hidden verification data in image and audio cover objects."
@@ -112,9 +112,9 @@ Message: Explain how steganography can be used to embed hidden verification data
       "team": "P6-4",
       "tool": "INF2005-ACW1 stego"
     },
-    "nonce": "16b384a9445fa088af50cdd06729e0f1",
+    "nonce": "cc91c0a940b89cfe8b4287779f039df0",
     "signer": "4f5c22730b9b77f2",
-    "timestamp": "2026-09-27T17:16:51+00:00",
+    "timestamp": "2026-09-28T08:15:47+00:00",
     "v": 2
   }
 }

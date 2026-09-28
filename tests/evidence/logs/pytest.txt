@@ -88,4 +88,4 @@ tests/test_gui.py::test_gui_smoke PASSED                                 [ 97%]
 tests/test_gui.py::test_receiver_clear_replay_button PASSED              [ 98%]
 tests/test_gui.py::test_shrink_max_keeps_single_pixel PASSED             [100%]
 
-============================= 83 passed in 23.08s =============================
+============================= 83 passed in 20.33s =============================

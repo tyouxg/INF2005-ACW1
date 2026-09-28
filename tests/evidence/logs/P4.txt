@@ -5,12 +5,12 @@ Start offset 19,568 of 352,800 carrier bytes, 8 LSB(s), 761 byte body, 0.23% of 
 
 {
   "v": 2,
-  "media_id": "ec668e4562e5",
+  "media_id": "e3939da5a39e",
   "kind": "audio",
   "file": "audio_cover.wav",
-  "timestamp": "2026-09-27T17:16:52+00:00",
+  "timestamp": "2026-09-28T08:15:48+00:00",
   "media_hash": "747eb00fa1290013cf668dc7923550c421923eeabf7e0be424d831cab721ed60",
-  "nonce": "775de1d09fadd98d48471c8dc906d886",
+  "nonce": "0ce00699895b38dae33f92c470d70ede",
   "lsb": 8,
   "signer": "4f5c22730b9b77f2",
   "meta": {
@@ -19,9 +19,9 @@ Start offset 19,568 of 352,800 carrier bytes, 8 LSB(s), 761 byte body, 0.23% of 
   },
   "message": {
     "enc": true,
-    "salt": "c5b54d0157f2253970133b0e0f87cb27",
-    "nonce": "0fc99e6d4dfa873c3954a604",
-    "ct": "acf9ef2bda6ff0498c7e8ca3943413df4458e1e558265c37ba72c160f736392560e18778e5aef50763318bf66ad69ff68bfc3ca2dcbb2bca89701c73b9283d4380cfa015853041471a61981626984057292972f4a8e196b80988d08c7901c98dacc6d0e3443e92cad41785504a63a94543ff7b770d341f3c7d71f9a18a192f2ccd749ca86a"
+    "salt": "f5b4b72bc847e357b9e801523e70e803",
+    "nonce": "db515757c1b334cb756e258a",
+    "ct": "58dd791da27cad89dc2df4a91c3a6e7db9688139fea8451b5c548a912fc73f87e7c194c82e81bae8b77cbffa72bc5c59d7657337e0ebae799286fecc2fbb4ad474c5553833a432197e2ec369e571384bd06591b06fee2390854608682cd8c42e1636f8a9c72752c4b0fa8e2d46c95c8fb01eeb2814a61de7cff25d9cfd7026b0a04ba4f037"
   }
 }
 ## Receiver side (CLI)
@@ -46,20 +46,20 @@ Message: Donor match confirmed for patient P-4471, transplant scheduled 5 Oct 06
     "kind": "audio",
     "lsb": 8,
     "media_hash": "747eb00fa1290013cf668dc7923550c421923eeabf7e0be424d831cab721ed60",
-    "media_id": "ec668e4562e5",
+    "media_id": "e3939da5a39e",
     "message": {
-      "ct": "acf9ef2bda6ff0498c7e8ca3943413df4458e1e558265c37ba72c160f736392560e18778e5aef50763318bf66ad69ff68bfc3ca2dcbb2bca89701c73b9283d4380cfa015853041471a61981626984057292972f4a8e196b80988d08c7901c98dacc6d0e3443e92cad41785504a63a94543ff7b770d341f3c7d71f9a18a192f2ccd749ca86a",
+      "ct": "58dd791da27cad89dc2df4a91c3a6e7db9688139fea8451b5c548a912fc73f87e7c194c82e81bae8b77cbffa72bc5c59d7657337e0ebae799286fecc2fbb4ad474c5553833a432197e2ec369e571384bd06591b06fee2390854608682cd8c42e1636f8a9c72752c4b0fa8e2d46c95c8fb01eeb2814a61de7cff25d9cfd7026b0a04ba4f037",
       "enc": true,
-      "nonce": "0fc99e6d4dfa873c3954a604",
-      "salt": "c5b54d0157f2253970133b0e0f87cb27"
+      "nonce": "db515757c1b334cb756e258a",
+      "salt": "f5b4b72bc847e357b9e801523e70e803"
     },
     "meta": {
       "team": "P6-4",
       "tool": "INF2005-ACW1 stego"
     },
-    "nonce": "775de1d09fadd98d48471c8dc906d886",
+    "nonce": "0ce00699895b38dae33f92c470d70ede",
     "signer": "4f5c22730b9b77f2",
-    "timestamp": "2026-09-27T17:16:52+00:00",
+    "timestamp": "2026-09-28T08:15:48+00:00",
     "v": 2
   }
 }
