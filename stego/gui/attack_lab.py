@@ -29,14 +29,17 @@ class AttackLabTab(QWidget):
         form.addRow("Public key", self.pub_pick)
         form.addRow("", run)
 
-        self.table = QTableWidget(0, 5)
-        # "Payload recovered" is where robust mode shows off: the verdict still
-        # flags the change, but the signed message came out intact
-        self.table.setHorizontalHeaderLabels(["Attack", "What the attacker did", "Expected", "Got",
-                                              "Payload recovered"])
+        self.table = QTableWidget(0, 6)
+        # "Check it targets" follows verify()'s order, so reading down the table
+        # walks through the defences one by one. "Payload recovered" is where
+        # robust mode shows off: the verdict still flags the change, but the
+        # signed message came out intact.
+        self.table.setHorizontalHeaderLabels(["Attack", "Check it targets", "What the attacker did",
+                                              "Expected", "Got", "Payload recovered"])
         self.table.horizontalHeader().setStretchLastSection(True)
         self.table.setEditTriggers(QTableWidget.NoEditTriggers)
-        self.summary = QLabel("Hover over a verdict to see why verify() gave it.")
+        self.summary = QLabel("Hover over an attack to see what the attacker has, or over a "
+                              "verdict to see why verify() gave it.")
 
         lay = QVBoxLayout(self)
         lay.addLayout(form)
@@ -56,12 +59,15 @@ class AttackLabTab(QWidget):
 
         self.table.setRowCount(len(results))
         for row, r in enumerate(results):
-            cells = [r.name, r.what, " / ".join(r.expected), r.got, "yes" if r.recovered else "no"]
+            cells = [f"{r.number}. {r.name}", r.check, r.what, " / ".join(r.expected), r.got,
+                     "yes" if r.recovered else "no"]
             for col, text in enumerate(cells):
                 self.table.setItem(row, col, QTableWidgetItem(text))
-            got = self.table.item(row, 3)
+            self.table.item(row, 0).setToolTip(f"Attacker has: {r.attacker_has}")
+            got = self.table.item(row, 4)
             got.setForeground(QColor(OK_COLOUR if r.passed else BAD_COLOUR))
             got.setToolTip(r.reason)
+        self.table.verticalHeader().setVisible(False)   # the attack number is in column 0
         self.table.resizeColumnsToContents()
 
         caught = sum(r.passed for r in results)
