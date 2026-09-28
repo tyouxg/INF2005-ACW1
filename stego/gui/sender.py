@@ -9,7 +9,7 @@ from PySide6.QtWidgets import (QCheckBox, QComboBox, QFileDialog, QFormLayout, Q
                                QSpinBox, QVBoxLayout, QWidget)
 
 from .. import messages
-from ..core import crypto, media, protect
+from ..core import crypto, media, protect, visual
 from .widgets import DiffView, FilePicker, MediaView, busy, last_dir, remember_dir
 
 MEDIA_FILTER = ("Cover files (*.png *.bmp *.jpg *.jpeg *.wav *.mkv *.avi *.mp4 *.mov);;"
@@ -253,6 +253,7 @@ class SenderTab(QWidget):
             f"Saved {out}\n"
             f"Start offset {info['start']:,} of {info['carrier_units']:,} carrier bytes, "
             f"{info['k']} LSB(s), {info['body_len']:,} byte body, "
-            f"{info['percent_used']:.2f}% of carrier used\n\n"
+            f"{info['percent_used']:.2f}% of carrier used\n"
+            f"Payload sits in {visual.payload_location(self.cover, info)}\n\n"
             + json.dumps(payload, indent=2))
         self.saved.emit(out)

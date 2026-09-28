@@ -7,6 +7,7 @@
     python -m stego.cli clear-replay
     python -m stego.cli protect clip.mkv out.mkv -k 1 --key "secret" --msg "hi" --robust 5
     python -m stego.cli scan suspicious.png
+    python -m stego.cli damage stego.png hurt.png --box 100 145 60 4 --noise 1
     python -m stego.cli shrink-video phone.mp4 small.mkv --seconds 5 --width 640
 """
 
@@ -15,7 +16,9 @@ import json
 import sys
 from pathlib import Path
 
-from .core import crypto, media, protect, replay, steganalysis
+import numpy as np
+
+from .core import crypto, media, protect, replay, steganalysis, visual
 
 KEYS_DIR = Path(__file__).resolve().parent.parent / "keys"
 
@@ -36,6 +39,7 @@ def cmd_protect(args):
     except protect.CapacityError as e:
         sys.exit(f"Capacity check failed: {e}")
     media.save_cover(stego, args.out)
+    print(f"Payload sits in {visual.payload_location(cover, info)}")
     print(json.dumps({"saved": args.out, **info, "payload": payload}, indent=2))
 
 
@@ -74,6 +78,28 @@ def cmd_scan(args):
 def cmd_shrink_video(args):
     out = media.shrink_video(args.src, args.out, args.seconds, args.width)
     print(f"Wrote {out}: {media.load_cover(out).describe()}")
+
+
+def cmd_damage(args):
+    # Damage a file like an attacker or a noisy channel would: no keys needed.
+    # Useful for showing robust mode: damage a normal and a robust file the same way.
+    cover = media.load_cover(args.file)
+    if args.box:
+        if cover.kind != "image":
+            sys.exit("--box only works on images")
+        x, y, w, h = args.box
+        p = cover.params
+        pixels = cover.data.reshape(p["height"], p["width"], 3)   # a view, edits go into the file
+        pixels[y:y + h, x:x + w] = 0
+        print(f"Blacked out a {w}x{h} box at x={x}, y={y}")
+    if args.noise:
+        car = cover.carrier
+        rng = np.random.default_rng(args.seed)
+        idx = rng.choice(len(car), size=max(1, int(len(car) * args.noise / 100)), replace=False)
+        car[idx] ^= 1
+        print(f"Flipped the lowest bit of {len(idx):,} of {len(car):,} carrier bytes ({args.noise}%)")
+    media.save_cover(cover, args.out)
+    print(f"Saved the damaged copy as {args.out}")
 
 
 def cmd_clear_replay(args):
@@ -129,6 +155,14 @@ def main(argv=None):
     p.add_argument("--seconds", type=float, default=5)
     p.add_argument("--width", type=int, default=640)
     p.set_defaults(func=cmd_shrink_video)
+
+    p = sub.add_parser("damage", help="damage a stego file (black box and/or LSB noise), no key needed")
+    p.add_argument("file")
+    p.add_argument("out")
+    p.add_argument("--box", type=int, nargs=4, metavar=("X", "Y", "W", "H"), help="black out a box (images)")
+    p.add_argument("--noise", type=float, default=0, help="flip the lowest bit of this %% of carrier bytes")
+    p.add_argument("--seed", type=int, default=1)
+    p.set_defaults(func=cmd_damage)
 
     p = sub.add_parser("clear-replay", help="forget which payloads were already verified")
     p.set_defaults(func=cmd_clear_replay)

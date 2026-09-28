@@ -33,6 +33,35 @@ def changed_pixels(cover: Cover, stego: Cover) -> int:
     return int(np.any(image_rgb(cover) != image_rgb(stego), axis=2).sum())
 
 
+def payload_location(cover: Cover, info: dict) -> str:
+    """Where the payload sits, in terms you can find in an image/audio editor.
+
+    `info` is what protect() returns. Handy for damaging the right spot by hand
+    when showing off robust mode.
+    """
+    n, start, used = info["carrier_units"], info["start"], info["units_used"]
+    segments = [(start, min(start + used, n) - 1)]
+    if start + used > n:                       # it wrapped round the end of the file
+        segments.append((0, start + used - n - 1))
+    p = cover.params
+    parts = []
+    for a, b in segments:
+        if cover.kind == "image":
+            parts.append(f"image rows {a // 3 // p['width']}-{b // 3 // p['width']} (y coordinates)")
+        elif cover.kind == "video":
+            size = p["width"] * p["height"] * 3
+            fa, fb = a // size, b // size
+            if fa == fb:
+                parts.append(f"frame {fa + 1}, rows {a % size // 3 // p['width']}-{b % size // 3 // p['width']}")
+            else:
+                parts.append(f"frames {fa + 1}-{fb + 1}")
+        else:
+            # one carrier byte per sample per channel
+            sa, sb = (x // p["channels"] / p["framerate"] for x in (a, b))
+            parts.append(f"{sa:.3f}-{sb:.3f} s into the audio")
+    return " and ".join(parts)
+
+
 def frame_cover(cover: Cover, i: int) -> Cover:
     """One frame of a video as an image Cover, so all the image views work on it."""
     p = cover.params
