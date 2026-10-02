@@ -4,6 +4,20 @@ GUI tool that hides a signed verification payload inside an image (PNG/BMP, JPG 
 or lossless video using LSB replacement, then extracts it and verifies it (Ed25519 signature +
 SHA-256 media hash), with an Attack Lab and a Steganalysis tab for the optional challenges.
 
+## Team P6-4
+
+| Role | Member | Main files |
+|---|---|---|
+| M1 Image steganography | Tok You Xiong | `core/media.py` (image), `core/lsb.py`, `core/imagetools.py` |
+| M2 Audio steganography | Eugene Kee | `core/media.py` (audio), `core/lsb.py`, WAV playback/waveform in `gui/widgets.py` |
+| M3 Hashing, signatures, payload | Natalie | `core/crypto.py`, `core/payload.py`, `core/replay.py`, `messages.py` |
+| M4 Start location and verification | Guan Teng | `core/protect.py`, key derivation in `core/crypto.py`, histogram view |
+| M5 GUI and integration | Raffael Harjanto | `gui/app.py`, `gui/sender.py`, `gui/receiver.py`, `core/visual.py`, `cli.py` |
+| M6 Innovation, attacks, evidence | Tan Ye Kai | `core/attacks.py`, `core/robust.py`, `core/steganalysis.py`, `gui/attack_lab.py`, `tools/`, `tests/evidence/` |
+
+The signed Declaration of Originality and the agreed contribution/distribution statement are
+submitted separately as `P6-4_DeclarationOfOriginality`.
+
 ## Setup
 
 Requires Python 3.12 (tested on 3.12 and 3.14; `requirements.txt` pins exact versions for both).
@@ -23,7 +37,7 @@ python -m stego.cli capacity cover.png -k 1 --msg-file long.txt   # exact size c
 python -m stego.cli scan file.png   # steganalysis, no key needed
 python -m stego.cli clear-replay    # forget accepted payloads (do this before a demo)
 python -m pytest                # tests
-python try_attack.py            # narrated Attack Lab run on the P1 evidence image
+python tools/try_attack.py      # narrated Attack Lab run on the P1 evidence image
 python tools/generate_evidence.py   # rebuild tests/evidence/ (logs, screenshots, results.json)
 ```
 
@@ -36,13 +50,13 @@ The test evidence (every demo case, the Attack Lab runs and the LSB 1-8 table) i
 
 | Command | You should see |
 |---|---|
-| `python -m pytest` | `89 passed` |
+| `python -m pytest` | `90 passed` |
 | `python -m stego.cli verify tests/evidence/files/p1_image_stego.png --key p6-4-demo-key` | `Verdict: Authentic` and the hidden message |
 | same, with `n2_image_tampered.png` | `Verdict: Tampered` |
 | same, with `n4_image_forged.png` | `Verdict: Signature Invalid` |
 | same, with `--key wrong` | `Verdict: Wrong Start Location` |
 | same file verified twice | second time: `Verdict: Replay Detected` (clear with `clear-replay`) |
-| `python try_attack.py` | 11 of 11 attacks give the expected verdict |
+| `python tools/try_attack.py` | 11 of 11 attacks give the expected verdict |
 | `python -m stego.cli scan tests/evidence/files/s1_legacy_v1_stego.png` | readable JSON found at k=2 (a version 1 file) |
 | `python -m stego.cli scan tests/evidence/files/p1_image_stego.png` | nothing readable (version 2 masks the body) |
 
@@ -54,11 +68,20 @@ files: `p6-4-demo-key`.
 | Type | Original (cover) | Protected (stego) → Authentic | Tampered / negative |
 |---|---|---|---|
 | Image | `tests/evidence/files/image_cover.png`, `samples/images/demo1.png`, `samples/images/demo3.jpg` (JPEG cover) | `tests/evidence/files/p1_image_stego.png` (k=2), `p3_image_custom_encrypted.png` (AES-GCM), `r1_image_robust_x5.png` (robust) | `n2_image_tampered.png` → Tampered, `n4_image_forged.png` → Signature Invalid, `image_tiny.png` → capacity check fails |
-| Audio | `tests/evidence/files/audio_cover.wav`, `samples/audio/cover_stereo_music.wav` | `tests/evidence/files/p2_audio_stego.wav`, `p4_audio_custom_k8.wav`; `samples/audio/stego_long_message.wav` (key `m2-audio-demo-key`, public key `samples/audio/demo_public_key.pem`) | `n3_audio_tampered.wav` → Tampered; `samples/audio/tampered_amplified_section.wav` → Tampered |
+| Audio | `tests/evidence/files/audio_cover.wav`, `samples/audio/cover_stereo_music.wav` | `tests/evidence/files/p2_audio_stego.wav`, `p4_audio_custom_k8.wav`; `samples/audio/stego_long_message.wav` (key `m2-audio-demo-key`) | `n3_audio_tampered.wav` → Tampered; `samples/audio/tampered_amplified_section.wav` → Tampered |
 | Video | `tests/evidence/files/video_cover.mkv` | `v1_video_stego.mkv` | `v2_video_tampered.mkv` → Tampered |
 
 `samples/images/demo2.txt` is a message file for *Load .txt*. The `samples/audio/*_k1/_k4/_k8`
 files are M2's listening-test files (see `tests/evidence/audio-audibility.md`).
+
+More demo files, each folder with its own README listing the key and the expected verdict:
+
+| Folder | What's in it |
+|---|---|
+| `samples/images/` | M1's demo covers (PNG and a JPEG cover), `demo567.png` for M3's custom payload demo |
+| `samples/audio/` | M2's generated WAV cover, long-message stego, amplified-section tamper case and listening-test files |
+| `samples/img_vid_small/` | 24x24 image and 4-frame video plus the two message files, for the capacity check |
+| `samples/yekai/` | M6's robust-mode pairs (normal vs x5 after a scratch / 1% noise) and the video cover, stego and tampered files |
 
 ## Keys
 
@@ -168,28 +191,44 @@ The GUI WAV previews include a waveform, allowing a before/after comparison.
 ## Folder structure
 
 ```
-stego/core/      media, LSB, crypto, payload, protect/verify, robust, attacks, steganalysis (no GUI code)
+stego/core/      media, LSB, crypto, payload, protect/verify, replay, robust, attacks, steganalysis (no GUI code)
 stego/gui/       PySide6 app (Sender, Receiver, Attack Lab, Steganalysis, Keys)
 stego/cli.py     command line
+stego/messages.py  preset messages (learning outcome, project overview, custom)
 tests/           pytest suite
 tests/evidence/  test evidence: logs, screenshots, files used, results.json and the Word write-up
-tools/           evidence generator, audio sample generator
-try_attack.py    narrated Attack Lab run
+tools/           try_attack.py, evidence generator, audio and demo sample generators
 keys/            the team's demo key pair (both keys committed on purpose, see Keys)
-samples/         demo covers, stego and tampered files (images, audio)
+samples/         demo covers, stego and tampered files (images, audio, video)
 ```
 
 ## Acknowledgements and AI use
 
 - **Libraries:** PySide6 (Qt), NumPy, Pillow, cryptography, matplotlib, imageio-ffmpeg (bundles
   FFmpeg), pytest.
-- **Media:** the evidence photo is Grace Hopper's portrait (U.S. Navy, public domain), shipped with
-  matplotlib's sample data. The evidence audio and `samples/audio` covers are synthetic tones generated
-  by `tools/generate_audio_samples.py`. The `samples/images` files were supplied by M1.
+- **Media:** the evidence photo and the `samples/yekai` files are made from Grace Hopper's portrait
+  (U.S. Navy, public domain), shipped with matplotlib's sample data; the demo videos are a pan across
+  that photo. The evidence audio and `samples/audio` covers are synthetic tones generated by
+  `tools/generate_audio_samples.py`. The `samples/images` files were supplied by M1 and M3.
 - **Algorithms:** Ed25519 (RFC 8032), HKDF (RFC 5869), scrypt (RFC 7914), AES-GCM, SHA-256, SHAKE-256;
   the chi-square attack from Westfeld & Pfitzmann, "Attacks on Steganographic Systems" (2000).
-- **AI assistance:** parts of the code, tests and documentation were written with an AI coding
-  assistant (Claude Code, by Anthropic). This includes the initial project scaffold and, for M6, the
-  Attack Lab, robust mode, video support, the steganalysis structure scan, the evidence generator and
-  explanatory notes. Every AI-assisted part was reviewed by the team, run on real files and checked by
-  the automated tests (89 passing), and each member can explain their own part.
+
+### AI-use declaration
+
+The spec asks for AI use to be disclosed (Declaration of Originality) and reflected on (rubric item 7).
+
+- **Tool:** Claude Code (Anthropic), an AI coding assistant.
+- **What it was used for:** the initial project scaffold (pipeline, crypto, LSB, media, GUI, CLI and
+  tests), and for M6 the Attack Lab, robust mode, video support, the steganalysis structure scan and
+  format v2 body mask, the evidence generator and explanatory notes. Members who used AI for their own
+  part are responsible for declaring it here and in the declaration form.
+- **How it was checked:** every AI-assisted change was read and run on real image, audio and video
+  files before it was merged, and is covered by the automated tests
+  (`python -m pytest`, 90 passing). The evidence in `tests/evidence/` comes from the real CLI and GUI,
+  not from hand-written output. Where the AI's first attempt was wrong it was caught this way, e.g. the
+  steganalysis scan flagging flat colour areas in M1's demo image as hidden text, which led to a fix
+  and a regression test.
+- **Ownership:** AI output was treated as a draft, not a substitute for understanding. Each member
+  reviewed the files they own and explained them individually in the demo.
+- **Responsible use:** the tool only embeds a verification record into media the user supplies; the
+  committed key pair is demo-only, and no part of the project sends email or uploads files.

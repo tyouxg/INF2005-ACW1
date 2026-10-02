@@ -1,16 +1,23 @@
-"""Run the Attack Lab from the command line and narrate each attack.
+r"""Run the Attack Lab from the command line and narrate each attack.
 
-    python try_attack.py                                   # the P1 evidence image
-    python try_attack.py <stego file> <stego key> <public key .pem>
+    .venv\Scripts\python tools\try_attack.py                                   # the P1 evidence image
+    .venv\Scripts\python tools\try_attack.py <stego file> <stego key> <public key .pem>
 
 Same thing the Attack Lab tab does (stego/core/attacks.py), printed as a story:
 for each attack, what the attacker has and does, which of verify()'s checks it
 goes after, and what verify() said back. Handy for rehearsing the demo.
+Relative paths are taken from the repository root.
 """
 
+import os
 import sys
+from pathlib import Path
 
-from stego.core import attacks, crypto, media, protect
+ROOT = Path(__file__).resolve().parents[1]
+os.chdir(ROOT)
+sys.path.insert(0, str(ROOT))
+
+from stego.core import attacks, crypto, media, protect   # noqa: E402
 
 path = sys.argv[1] if len(sys.argv) > 1 else "tests/evidence/files/p1_image_stego.png"
 key = sys.argv[2] if len(sys.argv) > 2 else "p6-4-demo-key"

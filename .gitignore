@@ -5,18 +5,26 @@ venv/
 .venv/
 *.egg-info/
 
+# pytest (pytest.ini keeps its temp files in the repo folder)
+.pytest_cache/
+.pytest-tmp/
+
 # keys/private_key.pem IS committed on purpose: it's the team's shared demo key,
 # generated only for this assignment. Any other key file stays out.
 *.key
+# replay history, local to each computer
 keys/seen_nonces.json
+
+# course material and drafts (not part of the code submission)
+/documents
 
 # OS/editor junk
 .DS_Store
+Thumbs.db
+desktop.ini
 .vscode/
 .idea/
+.claude/
 
-# Optional: generated test outputs during dev
+# temporary test outputs
 tests/evidence/*.tmp
-/documents
-.pytest_cache/
-.pytest-tmp/

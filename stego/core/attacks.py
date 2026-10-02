@@ -30,7 +30,7 @@ Attacks 1-8 go after those checks in that order. Attacks 9-11 aren't tricks:
 they're damage a file picks up on the way (noise, a scratch, lossy saving),
 and they show robust mode and our limitation.
 
-No Qt in here: the Attack Lab tab and try_attack.py just call run_all().
+No Qt in here: the Attack Lab tab and tools/try_attack.py just call run_all().
 """
 
 import io
