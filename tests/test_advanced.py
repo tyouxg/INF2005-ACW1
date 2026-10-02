@@ -69,6 +69,16 @@ def test_scan_reads_a_v1_payload_without_the_key(png, keys, k):
     assert info["start"] <= found.start <= info["start"] + info["units_used"]
 
 
+def test_scan_ignores_flat_colour_but_still_finds_v1(keys):
+    # M1's demo image has flat colour areas that used to decode into "c#cc#c..."
+    # and fool the scan. It must stay clean, and still give away a v1 payload.
+    cover = media.load_cover("samples/images/demo1.png")
+    assert not steganalysis.scan(cover).found
+    stego, _, _ = protect.protect(cover, "demo1.png", messages.SHORT, 2, KEY, keys[0], version=1)
+    found = steganalysis.scan(stego)
+    assert found.found and found.k == 2 and '"media_hash"' in found.text
+
+
 @pytest.mark.parametrize("k", [1, 2, 8])
 def test_scan_finds_nothing_in_v2_or_a_clean_cover(png, keys, k):
     cover = media.load_cover(png)

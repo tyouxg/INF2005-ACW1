@@ -1,8 +1,8 @@
 {
   "team": "P6-4",
-  "generated": "2026-09-28 16:16",
-  "commit": "f883eb2",
-  "branch": "m6-advanced",
+  "generated": "2026-09-28 19:43",
+  "commit": "464a27f",
+  "branch": "wrap-up",
   "environment": {
     "python": "3.12.0",
     "os": "Windows 11",
@@ -607,7 +607,7 @@
         "capacity": 70342,
         "body": 1093,
         "used_pct": 1.565,
-        "changed": 4422,
+        "changed": 4436,
         "quality": "PSNR 69.2 dB",
         "verdict": "Authentic"
       },
@@ -616,7 +616,7 @@
         "capacity": 140684,
         "body": 1093,
         "used_pct": 0.788,
-        "changed": 3316,
+        "changed": 3322,
         "quality": "PSNR 65.2 dB",
         "verdict": "Authentic"
       },
@@ -625,7 +625,7 @@
         "capacity": 211026,
         "body": 1093,
         "used_pct": 0.529,
-        "changed": 2578,
+        "changed": 2570,
         "quality": "PSNR 60.9 dB",
         "verdict": "Authentic"
       },
@@ -634,7 +634,7 @@
         "capacity": 281368,
         "body": 1093,
         "used_pct": 0.4,
-        "changed": 2066,
+        "changed": 2073,
         "quality": "PSNR 55.4 dB",
         "verdict": "Authentic"
       },
@@ -643,8 +643,8 @@
         "capacity": 351710,
         "body": 1093,
         "used_pct": 0.322,
-        "changed": 1716,
-        "quality": "PSNR 52.2 dB",
+        "changed": 1720,
+        "quality": "PSNR 52.3 dB",
         "verdict": "Authentic"
       },
       {
@@ -653,7 +653,7 @@
         "body": 1093,
         "used_pct": 0.27,
         "changed": 1477,
-        "quality": "PSNR 46.0 dB",
+        "quality": "PSNR 45.9 dB",
         "verdict": "Authentic"
       },
       {
@@ -671,7 +671,7 @@
         "body": 1093,
         "used_pct": 0.206,
         "changed": 1123,
-        "quality": "PSNR 32.8 dB",
+        "quality": "PSNR 32.9 dB",
         "verdict": "Authentic"
       }
     ],
@@ -681,8 +681,8 @@
         "capacity": 44092,
         "body": 1093,
         "used_pct": 2.497,
-        "changed": 4480,
-        "quality": "SNR 96.0 dB",
+        "changed": 4441,
+        "quality": "SNR 96.1 dB",
         "verdict": "Authentic"
       },
       {
@@ -690,7 +690,7 @@
         "capacity": 88184,
         "body": 1093,
         "used_pct": 1.257,
-        "changed": 3277,
+        "changed": 3308,
         "quality": "SNR 92.0 dB",
         "verdict": "Authentic"
       },
@@ -699,7 +699,7 @@
         "capacity": 132276,
         "body": 1093,
         "used_pct": 0.844,
-        "changed": 2582,
+        "changed": 2589,
         "quality": "SNR 87.8 dB",
         "verdict": "Authentic"
       },
@@ -726,7 +726,7 @@
         "capacity": 264552,
         "body": 1093,
         "used_pct": 0.431,
-        "changed": 1463,
+        "changed": 1462,
         "quality": "SNR 72.3 dB",
         "verdict": "Authentic"
       },
@@ -745,12 +745,12 @@
         "body": 1093,
         "used_pct": 0.328,
         "changed": 1117,
-        "quality": "SNR 61.5 dB",
+        "quality": "SNR 61.6 dB",
         "verdict": "Authentic"
       }
     ]
   },
-  "pytest": "83 passed in 20.33s",
+  "pytest": "89 passed in 24.75s",
   "advanced": {
     "video": {
       "payload_frame": 24,
@@ -1247,8 +1247,8 @@
         "found": true,
         "k": 2,
         "start": 493282,
-        "end": 495054,
-        "text": "F.8.p.w{\"file\":\"image_cover.png\",\"kind\":\"image\",\"lsb\":2,\"media_hash\":\"f97f1265bd0d420afdae41ee320c9d00754ea6258bfc6cee64111b3b9de87b7a\",\"media_id\":\"0b6aa719a596\",\"message\":{\"enc\":false,\"text\":\"Explain how steganography can be used to embed hidden verification data in image and audio cover objects.\"},\"meta\":{\"team\":\"P6-4\",\"tool\":\"INF2005-ACW1 stego\"},\"nonce\":\"29778fd0213055f514ded94d5dd13291\",\"sign",
+        "end": 495066,
+        "text": "F.8.p.w{\"file\":\"image_cover.png\",\"kind\":\"image\",\"lsb\":2,\"media_hash\":\"f97f1265bd0d420afdae41ee320c9d00754ea6258bfc6cee64111b3b9de87b7a\",\"media_id\":\"8f60b557e1db\",\"message\":{\"enc\":false,\"text\":\"Explain how steganography can be used to embed hidden verification data in image and audio cover objects.\"},\"meta\":{\"team\":\"P6-4\",\"tool\":\"INF2005-ACW1 stego\"},\"nonce\":\"cc7c1db558a18d03f8a95db51dfd584b\",\"sign",
         "chi_square_embedded": 0.617
       },
       {
@@ -1279,7 +1279,7 @@
         "start": null,
         "end": null,
         "text": "",
-        "chi_square_embedded": 0.627
+        "chi_square_embedded": 0.623
       },
       {
         "label": "Clean cover, nothing hidden",
@@ -1294,7 +1294,7 @@
     ]
   },
   "a_to_b": {
-    "p1_image_stego.png": "5ebcd4f24cec2d62650b74021bcceb884cf4fa90dccfc6ed16c3d39491251df1",
-    "p2_audio_stego.wav": "5128fbe1721762442b6428c7ddb7fd46adb805cb179ccf51a63f1eb09deb697b"
+    "p1_image_stego.png": "d0cd9de392c1562f67280d34905612cdda69ef34978da94b77740b75ed20849a",
+    "p2_audio_stego.wav": "fe187646874d838b31a4807c437be4688efc7dd0d902fcbaa09a6515e639106d"
   }
 }

@@ -1,8 +1,8 @@
 # Steganalysis: no stego key, no public key, just the file
 $ python -m stego.cli scan tests/evidence/files/s1_legacy_v1_stego.png
 Chi-square attack: 62% of chunks look embedded
-Structure scan: readable JSON at k=2, carrier bytes 493,282-495,054
-F.8.p.w{"file":"image_cover.png","kind":"image","lsb":2,"media_hash":"f97f1265bd0d420afdae41ee320c9d00754ea6258bfc6cee64111b3b9de87b7a","media_id":"0b6aa719a596","message":{"enc":false,"text":"Explain how steganography can be used to embed hidden verification data in image and audio cover objects."},"meta":{"team":"P6-4","tool":"INF2005-ACW1 stego"},"nonce":"29778fd0213055f514ded94d5dd13291","signer":"4f5c22730b9b77f2","timestamp":"2026-09
+Structure scan: readable JSON at k=2, carrier bytes 493,282-495,066
+F.8.p.w{"file":"image_cover.png","kind":"image","lsb":2,"media_hash":"f97f1265bd0d420afdae41ee320c9d00754ea6258bfc6cee64111b3b9de87b7a","media_id":"8f60b557e1db","message":{"enc":false,"text":"Explain how steganography can be used to embed hidden verification data in image and audio cover objects."},"meta":{"team":"P6-4","tool":"INF2005-ACW1 stego"},"nonce":"cc7c1db558a18d03f8a95db51dfd584b","signer":"4f5c22730b9b77f2","timestamp":"2026-09-28
 (exit code 1)
 
 $ python -m stego.cli scan samples/audio/stego_long_message.wav
@@ -17,7 +17,7 @@ Structure scan: nothing readable in the low bits (clean, or a masked version 2 p
 (exit code 0)
 
 $ python -m stego.cli scan tests/evidence/files/r1_image_robust_x5.png
-Chi-square attack: 63% of chunks look embedded
+Chi-square attack: 62% of chunks look embedded
 Structure scan: nothing readable in the low bits (clean, or a masked version 2 payload)
 (exit code 0)
 

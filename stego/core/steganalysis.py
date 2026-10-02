@@ -15,9 +15,13 @@ Two methods:
    bytes are just the pixel values, and a dark photo is full of values in the
    printable range, even the '"' character (value 34). So a window only counts
    if it also looks like JSON: a few '"' characters AND mostly lowercase letters
-   (keys, hex digests, words), where pixel values give mostly capitals and symbols. Version 1 payloads are plain JSON, so this finds them, shows
-   k and the location, and even reads the text out, all without the key. Version 2
-   masks the body with a key-derived stream, so there's nothing left to find.
+   (keys, hex digests, words), where pixel values give mostly capitals and symbols.
+   Flat colour areas are the last trap: one colour repeated decodes into a short
+   repeating pattern like "c#cc#c", which can pass all of that. JSON doesn't repeat
+   itself every few characters, so windows that mostly do are thrown out.
+   Version 1 payloads are plain JSON, so this finds them, shows k and the
+   location, and even reads the text out, all without the key. Version 2 masks
+   the body with a key-derived stream, so there's nothing left to find.
 """
 
 import math
@@ -29,6 +33,7 @@ WINDOW = 64            # decoded bytes per window
 THRESHOLD = 0.95       # share of printable bytes that counts as "text"
 MIN_QUOTES = 3         # JSON keys and strings are quoted
 MIN_LOWER = 0.40       # and JSON is mostly lowercase, dark pixel values mostly aren't
+MAX_REPEAT = 0.5       # flat colour repeats every 1-6 bytes, real text doesn't
 
 # printable ASCII plus tab/newline/carriage return
 PRINTABLE = np.zeros(256, dtype=bool)
@@ -79,6 +84,20 @@ def _decode(carrier: np.ndarray, k: int, offset: int) -> np.ndarray:
     return np.packbits(bits[offset:offset + 8 * m].reshape(m, 8), axis=1).reshape(-1)
 
 
+def _repetition(decoded: np.ndarray) -> np.ndarray:
+    """For each window, the highest share of bytes equal to the byte 1-6 places before.
+
+    Flat colour decodes into something like "c#cc#cc#c" (repeats every 3), which
+    scores near 1. JSON and English text score low.
+    """
+    worst = np.zeros(len(decoded) - WINDOW + 1)
+    for lag in range(1, 7):
+        same = np.concatenate([np.zeros(lag, dtype=bool), decoded[lag:] == decoded[:-lag]])
+        sums = np.concatenate([[0], np.cumsum(same)])
+        worst = np.maximum(worst, (sums[WINDOW:] - sums[:-WINDOW]) / WINDOW)
+    return worst
+
+
 def scan(cover) -> ScanResult:
     car = cover.carrier
     n = len(car)
@@ -95,6 +114,8 @@ def scan(cover) -> ScanResult:
             share = (printable[WINDOW:] - printable[:-WINDOW]) / WINDOW   # sliding share of printable bytes
             json_like = (((quotes[WINDOW:] - quotes[:-WINDOW]) >= MIN_QUOTES)
                          & ((lower[WINDOW:] - lower[:-WINDOW]) >= MIN_LOWER * WINDOW))
+            if json_like.any():
+                json_like &= _repetition(decoded) < MAX_REPEAT
             score = np.where(json_like, share, 0.0)
             hits = int((score >= THRESHOLD).sum())
             # map each window back to the carrier byte it starts at, for the plot
