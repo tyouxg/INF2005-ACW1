@@ -217,11 +217,12 @@ samples/         demo covers, stego and tampered files (images, audio, video)
 
 The spec asks for AI use to be disclosed (Declaration of Originality) and reflected on (rubric item 7).
 
-- **Tool:** Claude Code (Anthropic), an AI coding assistant.
+- **Tools:** Claude Code (Anthropic) and Codex (OpenAI), AI coding assistants.
 - **What it was used for:** the initial project scaffold (pipeline, crypto, LSB, media, GUI, CLI and
   tests), and for M6 the Attack Lab, robust mode, video support, the steganalysis structure scan and
-  format v2 body mask, the evidence generator and explanatory notes. Members who used AI for their own
-  part are responsible for declaring it here and in the declaration form.
+  format v2 body mask, the evidence generator and explanatory notes. Codex was also used to and check WAV
+  format/capacity/tamper tests, prepare reproducible audio demo assets and evidence notes, and support
+  understanding of the audio code for the demonstration.
 - **How it was checked:** every AI-assisted change was read and run on real image, audio and video
   files before it was merged, and is covered by the automated tests
   (`python -m pytest`, 90 passing). The evidence in `tests/evidence/` comes from the real CLI and GUI,
@@ -229,6 +230,8 @@ The spec asks for AI use to be disclosed (Declaration of Originality) and reflec
   steganalysis scan flagging flat colour areas in M1's demo image as hidden text, which led to a fix
   and a regression test.
 - **Ownership:** AI output was treated as a draft, not a substitute for understanding. Each member
-  reviewed the files they own and explained them individually in the demo.
+  reviewed the files they own and explained them individually in the demo. The audio GUI was also
+  manually tested with WAV files at `k = 1`, `4` and `8`; its resulting code and evidence were
+  reviewed by its contributor.
 - **Responsible use:** the tool only embeds a verification record into media the user supplies; the
   committed key pair is demo-only, and no part of the project sends email or uploads files.
