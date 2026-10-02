@@ -10,7 +10,7 @@ SHA-256 media hash), with an Attack Lab and a Steganalysis tab for the optional 
 |---|---|---|
 | M1 Image steganography | Tok You Xiong | `core/media.py` (image), `core/lsb.py`, `core/imagetools.py` |
 | M2 Audio steganography | Eugene Kee | `core/media.py` (audio), `core/lsb.py`, WAV playback/waveform in `gui/widgets.py` |
-| M3 Hashing, signatures, payload | Natalie | `core/crypto.py`, `core/payload.py`, `core/replay.py`, `messages.py` |
+| M3 Hashing, signatures, payload | Chia Shuxian Natalie | `core/crypto.py`, `core/payload.py`, `core/replay.py`, `messages.py` |
 | M4 Start location, verification & steganalysis | Tan Guan Teng | `core/protect.py`, key derivation in `core/crypto.py`, histogram view, `core/steganalysis.py` |
 | M5 GUI and integration | Raffael Harjanto | `gui/app.py`, `gui/sender.py`, `gui/receiver.py`, `core/visual.py`, `cli.py` |
 | M6 Innovation, attacks, evidence | Tan Ye Kai | `core/attacks.py`, `core/robust.py`, `gui/attack_lab.py`, `tools/`, `tests/evidence/` |
@@ -234,6 +234,8 @@ The spec asks for AI use to be disclosed (Declaration of Originality) and reflec
   understanding of the audio code for the demonstration. For M5, AI helped draft the exact capacity
   check, the image difference/LSB-plane view, the Sender/Receiver GUI polish and the `capacity` CLI
   command; these were checked by running the GUI and CLI on real files and by `tests/test_gui.py`.
+  
+  For M3, Claude helped design the payload field set and explain Ed25519 signing/verification, AES-GCM encryption and replay-nonce detection, and debug the verdict logic in `_verify()`; these were checked by running `pytest`, tracing real verdicts through the GUI/CLI, and manually verifying key fingerprints.
 - **How it was checked:** every AI-assisted change was read and run on real image, audio and video
   files before it was merged, and is covered by the automated tests
   (`python -m pytest`, 90 passing). The evidence in `tests/evidence/` comes from the real CLI and GUI,
