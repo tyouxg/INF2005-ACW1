@@ -254,7 +254,7 @@
       "passed": true,
       "log": "tests/evidence/logs/S1.txt",
       "screenshots": [
-        "tests/evidence/screenshots/S1_steganalysis_v1_found.png"
+        "tests/evidence/screenshots/S3_steganalysis_v1_found.png"
       ],
       "notes": "The structure scan finds the JSON, the LSB count and the location, and reads the message out."
     },
@@ -269,7 +269,7 @@
       "passed": true,
       "log": "tests/evidence/logs/S1.txt",
       "screenshots": [
-        "tests/evidence/screenshots/S2_steganalysis_v2_nothing.png"
+        "tests/evidence/screenshots/S4_steganalysis_v2_nothing.png"
       ],
       "notes": "Masking the body with a key-derived stream removes the structure the scan relies on."
     }

@@ -434,13 +434,13 @@ def advanced_cases(gui, image_cover):
     scan_log = "\n".join(cli_run(["scan", x["file"]]) for x in scans)
     log = write_log("S1", "# Steganalysis: no stego key, no public key, just the file", scan_log)
     got = gui.scan(legacy)
-    s1 = gui.shot("S1_steganalysis_v1_found", 3)
+    s1 = gui.shot("S3_steganalysis_v1_found", 3)
     add_case("S1", "Steganalysis reads a version 1 payload without the key", legacy.as_posix(),
              "image", "Optional challenge: steganalysis", "Hidden Text Found", got.title(), log, [s1],
              "The structure scan finds the JSON, the LSB count and the location, and reads the "
              "message out.")
     got = gui.scan(FILES / "p1_image_stego.png")
-    s2 = gui.shot("S2_steganalysis_v2_nothing", 3)
+    s2 = gui.shot("S4_steganalysis_v2_nothing", 3)
     add_case("S2", "Steganalysis finds nothing in a version 2 (masked) file",
              (FILES / "p1_image_stego.png").as_posix(), "image", "Our fix for S1",
              "Nothing Found", got.title(), log, [s2],

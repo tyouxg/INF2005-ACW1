@@ -226,7 +226,7 @@ The spec asks for AI use to be disclosed (Declaration of Originality) and reflec
 - **Tools:** Claude Code (Anthropic) and Codex (OpenAI), AI coding assistants.
 - **What it was used for:** the initial project scaffold (pipeline, crypto, LSB, media, GUI, CLI and
   tests), and for M6 the Attack Lab, robust mode, video support, the steganalysis structure scan and
-  format v2 body mask, the evidence generator and explanatory notes. Codex was also used to and check WAV
+  format v2 body mask, the evidence generator and explanatory notes. Codex was also used to write and check WAV
   format/capacity/tamper tests, prepare reproducible audio demo assets and evidence notes, and support
   understanding of the audio code for the demonstration. For M5, AI helped draft the exact capacity
   check, the image difference/LSB-plane view, the Sender/Receiver GUI polish and the `capacity` CLI
@@ -243,3 +243,16 @@ The spec asks for AI use to be disclosed (Declaration of Originality) and reflec
   reviewed by its contributor.
 - **Responsible use:** the tool only embeds a verification record into media the user supplies; the
   committed key pair is demo-only, and no part of the project sends email or uploads files.
+
+### Ethics
+
+- **Dual use.** The same LSB technique that hides a verification record can hide anything, including
+  data smuggled out of an organisation or messages meant to dodge monitoring. We built it to *prove*
+  where media came from, and the Steganalysis tab exists partly to show the defender's side.
+- **Authentic doesn't mean true.** A valid signature only says the file wasn't changed after our key
+  signed it. It says nothing about whether the content was honest to begin with, so the verdict
+  shouldn't be read as fact-checking.
+- **Consent and ownership.** Only embed into media you own or have permission to modify. Our samples
+  are a public-domain photo, synthetic audio and images supplied by team members.
+- **Keys.** The committed private key is a demo key and must never be reused. In real use, anyone who
+  gets the private key can sign forged "Authentic" files, and a weak stego key can be guessed offline.
