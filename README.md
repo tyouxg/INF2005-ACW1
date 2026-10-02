@@ -39,6 +39,7 @@ python -m stego.cli clear-replay    # forget accepted payloads (do this before a
 python -m pytest                # tests
 python tools/try_attack.py      # narrated Attack Lab run on the P1 evidence image
 python tools/generate_evidence.py   # rebuild tests/evidence/ (logs, screenshots, results.json)
+python tools/generate_image_samples.py   # M1's samples/images files + P5/P6/psnr evidence (run after the line above)
 ```
 
 Always run from the project root as modules (`python -m stego.gui`), not `python app.py`.
@@ -67,7 +68,7 @@ files: `p6-4-demo-key`.
 
 | Type | Original (cover) | Protected (stego) → Authentic | Tampered / negative |
 |---|---|---|---|
-| Image | `tests/evidence/files/image_cover.png`, `samples/images/demo1.png`, `samples/images/demo3.jpg` (JPEG cover) | `tests/evidence/files/p1_image_stego.png` (k=2), `p3_image_custom_encrypted.png` (AES-GCM), `r1_image_robust_x5.png` (robust) | `n2_image_tampered.png` → Tampered, `n4_image_forged.png` → Signature Invalid, `image_tiny.png` → capacity check fails |
+| Image | `tests/evidence/files/image_cover.png`, `samples/images/demo1.png`, `samples/images/demo3.jpg` (JPEG cover) | `tests/evidence/files/p1_image_stego.png` (k=2), `p3_image_custom_encrypted.png` (AES-GCM), `r1_image_robust_x5.png` (robust); `samples/images/demo1_stego_k2.png`, `demo1_long_k1.png`/`_k8.png` (long message), `demo3_jpeg_cover_stego.png` (from the JPEG cover) | `n2_image_tampered.png` → Tampered, `n4_image_forged.png` → Signature Invalid, `image_tiny.png` → capacity check fails; `samples/images/demo1_tampered.png` → Tampered, `demo1_stego_resaved.jpg` → Wrong Start Location |
 | Audio | `tests/evidence/files/audio_cover.wav`, `samples/audio/cover_stereo_music.wav` | `tests/evidence/files/p2_audio_stego.wav`, `p4_audio_custom_k8.wav`; `samples/audio/stego_long_message.wav` (key `m2-audio-demo-key`) | `n3_audio_tampered.wav` → Tampered; `samples/audio/tampered_amplified_section.wav` → Tampered |
 | Video | `tests/evidence/files/video_cover.mkv` | `v1_video_stego.mkv` | `v2_video_tampered.mkv` → Tampered |
 
@@ -78,7 +79,7 @@ More demo files, each folder with its own README listing the key and the expecte
 
 | Folder | What's in it |
 |---|---|
-| `samples/images/` | M1's demo covers (PNG and a JPEG cover), `demo567.png` for M3's custom payload demo |
+| `samples/images/` | M1's demo covers (PNG and a JPEG cover) with their stego, tampered and JPEG re-saved copies, `demo567.png` for M3's custom payload demo |
 | `samples/audio/` | M2's generated WAV cover, long-message stego, amplified-section tamper case and listening-test files |
 | `samples/img_vid_small/` | 24x24 image and 4-frame video plus the two message files, for the capacity check |
 | `samples/yekai/` | M6's robust-mode pairs (normal vs x5 after a scratch / 1% noise) and the video cover, stego and tampered files |
@@ -110,7 +111,8 @@ public and never reuse it for anything real.
 1. **Sender (A):** choose a cover (PNG/BMP/JPG, WAV, or MKV/AVI/MP4 video), type or pick a message,
    choose 1–8 LSBs, enter a stego key (shared secret), optionally tick *Encrypt* and pick a
    *Robustness* level, then *Protect & save*. Before/after previews let you view both images, play
-   both audio files or step through video frames; the difference view shows where the payload went.
+   both audio files or step through video frames; the difference view shows where the payload went,
+   with the PSNR and MSE (`core/imagetools.py`) so you can see how much each LSB setting changes the image.
 2. Send the stego file to B by any channel, e.g. as an email attachment (done by hand, not by this tool).
 3. **Receiver (B):** load the stego file, enter the same stego key and the sender's public key, then
    *Extract & verify*.
@@ -182,6 +184,10 @@ The GUI WAV previews include a waveform, allowing a before/after comparison.
   have noisy low bits. A stronger statistical test might still flag big payloads.
 - Robust mode divides capacity by the repetition factor. Video keeps no audio track and every frame is
   held in memory.
+- JPEG covers are accepted but the stego file is always PNG, which is usually much bigger than the
+  original (`demo3.jpg` 22 KB → 57 KB). A JPEG that turns into a big PNG can itself look suspicious.
+- PSNR averages over the whole image, so a short payload at 8 LSBs still scores about 32 dB while its
+  own few rows are visibly noisy. The difference view shows this better than the number.
 - Transparent PNGs lose their transparency: the alpha channel is dropped, so transparent areas turn
   black in the stego image.
 - The replay log is per computer and nothing checks how old the timestamp is.

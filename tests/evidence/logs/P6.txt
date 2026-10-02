@@ -1,0 +1,206 @@
+# M1 image samples (samples/images), CLI verification
+## PSNR / MSE (core/imagetools.py)
+k=1: PSNR 69.6 dB, MSE 0.0072, 2,513 of 199,800 pixels changed
+k=8: PSNR 32.1 dB, MSE 39.9872, 380 of 199,800 pixels changed
+## Tampered file: black bar from row 10, away from the payload
+$ python -m stego.cli verify samples/images/demo1_stego_k2.png --key p6-4-demo-key --pub keys/public_key.pem
+Verdict: Authentic
+Signature valid and media hash matches.
+Message: Explain how steganography can be used to embed hidden verification data in image and audio cover objects.
+{
+  "details": {
+    "start": 510403,
+    "carrier_units": 599400,
+    "k": 2,
+    "body_len": 520,
+    "reps": 1,
+    "version": 2,
+    "header_units": 64,
+    "expected_hash": "bad9edc800a719aeb1edd1c36eefc85c009a42854da1d80ec52fd70e542b7f68",
+    "current_hash": "bad9edc800a719aeb1edd1c36eefc85c009a42854da1d80ec52fd70e542b7f68"
+  },
+  "payload": {
+    "file": "demo1.png",
+    "kind": "image",
+    "lsb": 2,
+    "media_hash": "bad9edc800a719aeb1edd1c36eefc85c009a42854da1d80ec52fd70e542b7f68",
+    "media_id": "a67bb22e7785",
+    "message": {
+      "enc": false,
+      "text": "Explain how steganography can be used to embed hidden verification data in image and audio cover objects."
+    },
+    "meta": {
+      "team": "P6-4",
+      "tool": "INF2005-ACW1 stego"
+    },
+    "nonce": "6b25fceba8c80973bd86b026cb4b2f9c",
+    "signer": "4f5c22730b9b77f2",
+    "timestamp": "2026-10-02T11:17:59+00:00",
+    "v": 2
+  }
+}
+(exit code 0)
+
+$ python -m stego.cli verify samples/images/demo1_tampered.png --key p6-4-demo-key --pub keys/public_key.pem
+Verdict: Tampered
+Signature is valid, but the media hash doesn't match. The file was modified after it was protected.
+Message: Explain how steganography can be used to embed hidden verification data in image and audio cover objects.
+{
+  "details": {
+    "start": 510403,
+    "carrier_units": 599400,
+    "k": 2,
+    "body_len": 520,
+    "reps": 1,
+    "version": 2,
+    "header_units": 64,
+    "expected_hash": "bad9edc800a719aeb1edd1c36eefc85c009a42854da1d80ec52fd70e542b7f68",
+    "current_hash": "98cd495be3e8fbd10a7c1a0fb74bb69046147a2dc83697300939edfcc80a8b00"
+  },
+  "payload": {
+    "file": "demo1.png",
+    "kind": "image",
+    "lsb": 2,
+    "media_hash": "bad9edc800a719aeb1edd1c36eefc85c009a42854da1d80ec52fd70e542b7f68",
+    "media_id": "a67bb22e7785",
+    "message": {
+      "enc": false,
+      "text": "Explain how steganography can be used to embed hidden verification data in image and audio cover objects."
+    },
+    "meta": {
+      "team": "P6-4",
+      "tool": "INF2005-ACW1 stego"
+    },
+    "nonce": "6b25fceba8c80973bd86b026cb4b2f9c",
+    "signer": "4f5c22730b9b77f2",
+    "timestamp": "2026-10-02T11:17:59+00:00",
+    "v": 2
+  }
+}
+(exit code 1)
+
+$ python -m stego.cli verify samples/images/demo1_stego_resaved.jpg --key p6-4-demo-key --pub keys/public_key.pem
+Verdict: Wrong Start Location
+No valid header at offset 510403. Either the stego key is wrong (so the derived start location is wrong) or this file has no payload.
+{
+  "details": {
+    "start": 510403,
+    "carrier_units": 599400
+  },
+  "payload": null
+}
+(exit code 1)
+
+$ python -m stego.cli verify samples/images/demo3_jpeg_cover_stego.png --key p6-4-demo-key --pub keys/public_key.pem
+Verdict: Authentic
+Signature valid and media hash matches.
+Message: Explain how steganography can be used to embed hidden verification data in image and audio cover objects.
+{
+  "details": {
+    "start": 320673,
+    "carrier_units": 648000,
+    "k": 2,
+    "body_len": 520,
+    "reps": 1,
+    "version": 2,
+    "header_units": 64,
+    "expected_hash": "b12f8eba374a816ccee63a238580700f222a1e752f153f833a8d7a395f541fc6",
+    "current_hash": "b12f8eba374a816ccee63a238580700f222a1e752f153f833a8d7a395f541fc6"
+  },
+  "payload": {
+    "file": "demo3.jpg",
+    "kind": "image",
+    "lsb": 2,
+    "media_hash": "b12f8eba374a816ccee63a238580700f222a1e752f153f833a8d7a395f541fc6",
+    "media_id": "22e963babf9f",
+    "message": {
+      "enc": false,
+      "text": "Explain how steganography can be used to embed hidden verification data in image and audio cover objects."
+    },
+    "meta": {
+      "team": "P6-4",
+      "tool": "INF2005-ACW1 stego"
+    },
+    "nonce": "df528a87e8ba7d650ba925a919089dd7",
+    "signer": "4f5c22730b9b77f2",
+    "timestamp": "2026-10-02T11:18:01+00:00",
+    "v": 2
+  }
+}
+(exit code 0)
+
+$ python -m stego.cli verify samples/images/demo1_long_k1.png --key p6-4-demo-key --pub keys/public_key.pem
+Verdict: Authentic
+Signature valid and media hash matches.
+Message: This undergraduate project requires student teams to design, implement and demonstrate a GUI-based LSB Replacement steganography program (window-based or web-based) that protects and verifies both image and audio cover objects using steganography, hashing and digital signatures. The project focuses on practical cybersecurity concepts: hiding a verification payload inside an image and an audio file, signing relevant verification data, extracting the hidden payload, checking the digital signature, and demonstrating positive and negative verification cases. Video as a cover object is not required for the main assignment, but may be attempted as an optional challenge.
+{
+  "details": {
+    "start": 510403,
+    "carrier_units": 599400,
+    "k": 1,
+    "body_len": 1087,
+    "reps": 1,
+    "version": 2,
+    "header_units": 64,
+    "expected_hash": "8045f45f8865b855f50471b449064b3ef558409e7d77e11625aad36a954eb6bc",
+    "current_hash": "8045f45f8865b855f50471b449064b3ef558409e7d77e11625aad36a954eb6bc"
+  },
+  "payload": {
+    "file": "demo1.png",
+    "kind": "image",
+    "lsb": 1,
+    "media_hash": "8045f45f8865b855f50471b449064b3ef558409e7d77e11625aad36a954eb6bc",
+    "media_id": "fbdc26b6f0a7",
+    "message": {
+      "enc": false,
+      "text": "This undergraduate project requires student teams to design, implement and demonstrate a GUI-based LSB Replacement steganography program (window-based or web-based) that protects and verifies both image and audio cover objects using steganography, hashing and digital signatures. The project focuses on practical cybersecurity concepts: hiding a verification payload inside an image and an audio file, signing relevant verification data, extracting the hidden payload, checking the digital signature, and demonstrating positive and negative verification cases. Video as a cover object is not required for the main assignment, but may be attempted as an optional challenge."
+    },
+    "meta": {
+      "team": "P6-4",
+      "tool": "INF2005-ACW1 stego"
+    },
+    "nonce": "bfa757354c75a2485d7d4e8482144a3c",
+    "signer": "4f5c22730b9b77f2",
+    "timestamp": "2026-10-02T11:18:01+00:00",
+    "v": 2
+  }
+}
+(exit code 0)
+
+$ python -m stego.cli verify samples/images/demo1_long_k8.png --key p6-4-demo-key --pub keys/public_key.pem
+Verdict: Authentic
+Signature valid and media hash matches.
+Message: This undergraduate project requires student teams to design, implement and demonstrate a GUI-based LSB Replacement steganography program (window-based or web-based) that protects and verifies both image and audio cover objects using steganography, hashing and digital signatures. The project focuses on practical cybersecurity concepts: hiding a verification payload inside an image and an audio file, signing relevant verification data, extracting the hidden payload, checking the digital signature, and demonstrating positive and negative verification cases. Video as a cover object is not required for the main assignment, but may be attempted as an optional challenge.
+{
+  "details": {
+    "start": 510403,
+    "carrier_units": 599400,
+    "k": 8,
+    "body_len": 1087,
+    "reps": 1,
+    "version": 2,
+    "header_units": 64,
+    "expected_hash": "495e43f92d12c997ba8d64d9ffa9809bddba74e4c4f5b873c12bcc2004ceae18",
+    "current_hash": "495e43f92d12c997ba8d64d9ffa9809bddba74e4c4f5b873c12bcc2004ceae18"
+  },
+  "payload": {
+    "file": "demo1.png",
+    "kind": "image",
+    "lsb": 8,
+    "media_hash": "495e43f92d12c997ba8d64d9ffa9809bddba74e4c4f5b873c12bcc2004ceae18",
+    "media_id": "b44cda4749eb",
+    "message": {
+      "enc": false,
+      "text": "This undergraduate project requires student teams to design, implement and demonstrate a GUI-based LSB Replacement steganography program (window-based or web-based) that protects and verifies both image and audio cover objects using steganography, hashing and digital signatures. The project focuses on practical cybersecurity concepts: hiding a verification payload inside an image and an audio file, signing relevant verification data, extracting the hidden payload, checking the digital signature, and demonstrating positive and negative verification cases. Video as a cover object is not required for the main assignment, but may be attempted as an optional challenge."
+    },
+    "meta": {
+      "team": "P6-4",
+      "tool": "INF2005-ACW1 stego"
+    },
+    "nonce": "5d819c41c7b64487b5abe7335acaf69c",
+    "signer": "4f5c22730b9b77f2",
+    "timestamp": "2026-10-02T11:18:02+00:00",
+    "v": 2
+  }
+}
+(exit code 0)
