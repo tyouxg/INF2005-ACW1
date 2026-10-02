@@ -11,9 +11,9 @@ SHA-256 media hash), with an Attack Lab and a Steganalysis tab for the optional 
 | M1 Image steganography | Tok You Xiong | `core/media.py` (image), `core/lsb.py`, `core/imagetools.py` |
 | M2 Audio steganography | Eugene Kee | `core/media.py` (audio), `core/lsb.py`, WAV playback/waveform in `gui/widgets.py` |
 | M3 Hashing, signatures, payload | Natalie | `core/crypto.py`, `core/payload.py`, `core/replay.py`, `messages.py` |
-| M4 Start location and verification | Guan Teng | `core/protect.py`, key derivation in `core/crypto.py`, histogram view |
+| M4 Start location, verification & steganalysis | Tan Guan Teng | `core/protect.py`, key derivation in `core/crypto.py`, histogram view, `core/steganalysis.py` |
 | M5 GUI and integration | Raffael Harjanto | `gui/app.py`, `gui/sender.py`, `gui/receiver.py`, `core/visual.py`, `cli.py` |
-| M6 Innovation, attacks, evidence | Tan Ye Kai | `core/attacks.py`, `core/robust.py`, `core/steganalysis.py`, `gui/attack_lab.py`, `tools/`, `tests/evidence/` |
+| M6 Innovation, attacks, evidence | Tan Ye Kai | `core/attacks.py`, `core/robust.py`, `gui/attack_lab.py`, `tools/`, `tests/evidence/` |
 
 The signed Declaration of Originality and the agreed contribution/distribution statement are
 submitted separately as `P6-4_DeclarationOfOriginality`.
