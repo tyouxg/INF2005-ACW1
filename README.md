@@ -222,7 +222,9 @@ The spec asks for AI use to be disclosed (Declaration of Originality) and reflec
   tests), and for M6 the Attack Lab, robust mode, video support, the steganalysis structure scan and
   format v2 body mask, the evidence generator and explanatory notes. Codex was also used to and check WAV
   format/capacity/tamper tests, prepare reproducible audio demo assets and evidence notes, and support
-  understanding of the audio code for the demonstration.
+  understanding of the audio code for the demonstration. For M5, AI helped draft the exact capacity
+  check, the image difference/LSB-plane view, the Sender/Receiver GUI polish and the `capacity` CLI
+  command; these were checked by running the GUI and CLI on real files and by `tests/test_gui.py`.
 - **How it was checked:** every AI-assisted change was read and run on real image, audio and video
   files before it was merged, and is covered by the automated tests
   (`python -m pytest`, 90 passing). The evidence in `tests/evidence/` comes from the real CLI and GUI,
