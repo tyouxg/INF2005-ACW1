@@ -224,9 +224,12 @@ samples/         demo covers, stego and tampered files (images, audio, video)
 The spec asks for AI use to be disclosed (Declaration of Originality) and reflected on (rubric item 7).
 
 - **Tools:** Claude Code (Anthropic) and Codex (OpenAI), AI coding assistants.
-- **What it was used for:** the initial project scaffold (pipeline, crypto, LSB, media, GUI, CLI and
-  tests), and for M6 the Attack Lab, robust mode, video support, the steganalysis structure scan and
-  format v2 body mask, the evidence generator and explanatory notes. Codex was also used to write and check WAV
+- **What it was used for:** Claude Code helped generate the initial project scaffold, and assisted M6
+  with implementing the optional-challenge features and the evidence generator. M6 chose and designed
+  those features, directed the changes, and tested and debugged them. M6 also read through the
+  AI-assisted code, traced how each part works (e.g. which of `verify()`'s checks every Attack Lab
+  attack targets, and why robust mode survives noise that breaks a normal file), checked the results
+  against real files, and explained and defended it in the demo. Codex was also used to write and check WAV
   format/capacity/tamper tests, prepare reproducible audio demo assets and evidence notes, and support
   understanding of the audio code for the demonstration. For M5, AI helped draft the exact capacity
   check, the image difference/LSB-plane view, the Sender/Receiver GUI polish and the `capacity` CLI
